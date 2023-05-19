@@ -1,9 +1,11 @@
 use crate::token::{self, Token};
 
+mod tests;
+
 struct Lexer {
     input: String,
-    position: i32,
-    read_position: i32,
+    position: usize,
+    read_position: usize,
     ch: char
 }
 
@@ -26,23 +28,43 @@ impl Lexer {
             self.ch = self
                 .input
                 .chars()
-                .collect::<Vec<char>>()[self.read_position as usize];
+                .collect::<Vec<char>>()[self.read_position];
         }
         self.position = self.read_position;
         self.read_position += 1;
     }
 
     fn read_identifier(&mut self) -> String {
-        let position = self.position as usize;
-        while self.ch.is_alphabetic() {
+        let position = self.position;
+        while self.ch.is_alphabetic() || self.ch == '_' {
             self.read_char();
         }
-        let chars: &str = self.input.as_str();
-        // return String::from(chars[position..(self.position as usize)]);
-        return String::new(); // placeholder return
+        let chars = self.input.chars().collect::<Vec<char>>();
+        let mut s = String::new();
+        for i in position..self.position {
+            s.push(chars[i]);
+        }
+        return s;
+    }
+
+    fn read_number(&mut self) -> String {
+        let position = self.position;
+        while self.ch.is_digit(10) {
+            self.read_char();
+        }
+        let chars = self.input.chars().collect::<Vec<char>>();
+        let mut s = String::new();
+        for i in position..self.position {
+            s.push(chars[i]);
+        }
+        return s;
     }
 
     pub fn next_token(&mut self) -> Token {
+        while self.ch.is_whitespace() {
+            self.read_char();
+        }
+
         let tok: Token = match self.ch {
             '=' => Token::ASSIGN(String::from(self.ch)),
             ';' => Token::SEMICOLON(String::from(self.ch)),
@@ -53,8 +75,12 @@ impl Lexer {
             '+' => Token::PLUS(String::from(self.ch)),
             ',' => Token::COMMA(String::from(self.ch)),
             _ => {
-                if self.ch.is_alphabetic() {
-                    Token::IDENT(self.read_identifier())
+                if self.ch.is_alphabetic() || self.ch == '_' {
+                    let literal= self.read_identifier();
+                    token::lookup_ident(literal)
+                } 
+                else if self.ch.is_digit(10) {
+                    Token::INT(self.read_number())
                 } else {
                     Token::ILLEGAL(self.ch.to_string())
                 }
@@ -63,40 +89,5 @@ impl Lexer {
 
         self.read_char();
         return tok;
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::lexer::Lexer;
-    use crate::token::Token;
-
-    #[test]
-    fn next_token() {
-        let input = String::from("=+(){},;");
-        let mut l = Lexer::new(input);
-        let mut t = l.next_token();
-        assert_eq!(t, Token::ASSIGN(String::from("=")));
-        t = l.next_token();
-        assert_eq!(t, Token::PLUS(String::from("+")));
-        t = l.next_token();
-        assert_eq!(t, Token::LPAREN(String::from("(")));
-    }
-
-    #[test]
-    fn next_token_code() {
-        let input = String::from("let five = 5;
-let ten = 10;
-
-let add = fn(x, y) {
-    x + y;
-};
-
-let result = add(five, ten);");
-        let mut l = Lexer::new(input);
-        let mut t = l.next_token();
-        assert_eq!(t, Token::LET(String::from("let")));
-        t = l.next_token();
-        assert_eq!(t, Token::IDENT(String::from("five")));
     }
 }

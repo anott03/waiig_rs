@@ -1,26 +1,6 @@
-// const ILLEGAL: &str = "ILLEGAL";
-// const EOF: &str = "EOF";
-// const IDENT: &str = "IDENT";
-// const INT: &str = "INT";
-// const ASSIGN: &str = "=";
-// const PLUS: &str = "+";
-// const COMMA: &str = ",";
-// const SEMICOLON: &str = ";";
-// const LPAREN: &str = "(";
-// const RPAREN: &str = ")";
-// const LBRACE: &str = "{";
-// const RBRACE: &str = "}";
-// const FUNCTION: &str = "FUNCTION";
-// const LET: &str = "LET";
-//
-// type TokenType = String;
-//
-// pub struct Token {
-//     token_type: TokenType,
-//     literal: String,
-// }
+use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Token {
     ILLEGAL(String),
     EOF(String),
@@ -36,4 +16,25 @@ pub enum Token {
     RBRACE(String),
     FUNCTION(String),
     LET(String),
+}
+
+pub fn lookup_ident(ident: String) -> Token {
+    let mut keywords: HashMap<&str, Token> = HashMap::new();
+
+    keywords.insert("let", Token::LET(String::from("let")));
+
+    return match keywords.get(ident.as_str()) {
+        Some(x) => x.clone(),
+        None => Token::IDENT(ident)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{token, token::Token};
+
+    #[test]
+    fn lookup_ident() {
+        assert_eq!(token::lookup_ident(String::from("let")), Token::LET(String::from("let")));
+    }
 }

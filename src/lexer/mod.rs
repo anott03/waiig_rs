@@ -66,14 +66,14 @@ impl Lexer {
         }
 
         let tok: Token = match self.ch {
-            '=' => Token::ASSIGN(String::from(self.ch)),
-            ';' => Token::SEMICOLON(String::from(self.ch)),
-            '(' => Token::LPAREN(String::from(self.ch)),
-            ')' => Token::RPAREN(String::from(self.ch)),
-            '{' => Token::LBRACE(String::from(self.ch)),
-            '}' => Token::RBRACE(String::from(self.ch)),
-            '+' => Token::PLUS(String::from(self.ch)),
-            ',' => Token::COMMA(String::from(self.ch)),
+            '=' => Token::ASSIGN,
+            ';' => Token::SEMICOLON,
+            '(' => Token::LPAREN,
+            ')' => Token::RPAREN,
+            '{' => Token::LBRACE,
+            '}' => Token::RBRACE,
+            '+' => Token::PLUS,
+            ',' => Token::COMMA,
             _ => {
                 if self.ch.is_alphabetic() || self.ch == '_' {
                     let literal= self.read_identifier();
@@ -82,7 +82,7 @@ impl Lexer {
                 else if self.ch.is_digit(10) {
                     Token::INT(self.read_number())
                 } else {
-                    Token::ILLEGAL(self.ch.to_string())
+                    Token::ILLEGAL
                 }
             }
         };

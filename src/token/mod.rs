@@ -1,21 +1,38 @@
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Token {
     IDENT(String),
     INT(String),
+
     ILLEGAL,
     EOF,
-    ASSIGN,
-    PLUS,
     COMMA,
     SEMICOLON,
     LPAREN,
     RPAREN,
-    LBRACE,
-    RBRACE,
+    LSQUIRLY,
+    RSQUIRLY,
     FUNCTION,
     LET,
+    TRUE,
+    FALSE,
+    IF,
+    ELSE,
+    RETURN,
+
+    ASSIGN,
+    PLUS,
+    MINUS,
+    BANG,
+    ASTERISK,
+    SLASH,
+
+    LT,
+    GT,
+    EQ,
+    NEQ,
 }
 
 pub fn lookup_ident(ident: String) -> Token {

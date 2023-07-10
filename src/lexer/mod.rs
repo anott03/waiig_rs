@@ -9,6 +9,7 @@ struct Lexer {
     ch: char
 }
 
+#[allow(dead_code)]
 impl Lexer {
     pub fn new(inpt: String) -> Self {
         let mut l = Lexer {
@@ -60,18 +61,40 @@ impl Lexer {
         return s;
     }
 
+    fn peek_char(&mut self) -> char {
+        if self.read_position >= self.input.len() {
+            return '\0';
+        }
+        return self.input.chars().collect::<Vec<char>>()[self.read_position];
+    }
+
     pub fn next_token(&mut self) -> Token {
         while self.ch.is_whitespace() {
             self.read_char();
         }
 
         let tok: Token = match self.ch {
-            '=' => Token::ASSIGN,
+            '=' => {
+                if self.peek_char() == '=' {
+                    return Token::EQ;
+                }
+                return Token::ASSIGN
+            },
+            '!' => {
+                if self.peek_char() == '=' {
+                    return Token::NEQ;
+                }
+                return Token::BANG;
+            },
+            '*' => Token::ASTERISK,
+            '/' => Token::SLASH,
+            '<' => Token::LT,
+            '>' => Token::GT,
             ';' => Token::SEMICOLON,
             '(' => Token::LPAREN,
             ')' => Token::RPAREN,
-            '{' => Token::LBRACE,
-            '}' => Token::RBRACE,
+            '{' => Token::LSQUIRLY,
+            '}' => Token::RSQUIRLY,
             '+' => Token::PLUS,
             ',' => Token::COMMA,
             _ => {

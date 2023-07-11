@@ -74,6 +74,21 @@ impl Lexer {
         }
 
         let tok: Token = match self.ch {
+            '\0' => Token::EOF,
+            ',' => Token::COMMA,
+            ';' => Token::SEMICOLON,
+            '(' => Token::LPAREN,
+            ')' => Token::RPAREN,
+            '{' => Token::LSQUIRLY,
+            '}' => Token::RSQUIRLY,
+
+            '+' => Token::PLUS,
+            '-' => Token::MINUS,
+            '*' => Token::ASTERISK,
+            '/' => Token::SLASH,
+            '<' => Token::LT,
+            '>' => Token::GT,
+
             '=' => {
                 if self.peek_char() == '=' {
                     return Token::EQ;
@@ -86,17 +101,7 @@ impl Lexer {
                 }
                 return Token::BANG;
             },
-            '*' => Token::ASTERISK,
-            '/' => Token::SLASH,
-            '<' => Token::LT,
-            '>' => Token::GT,
-            ';' => Token::SEMICOLON,
-            '(' => Token::LPAREN,
-            ')' => Token::RPAREN,
-            '{' => Token::LSQUIRLY,
-            '}' => Token::RSQUIRLY,
-            '+' => Token::PLUS,
-            ',' => Token::COMMA,
+
             _ => {
                 if self.ch.is_alphabetic() || self.ch == '_' {
                     let literal= self.read_identifier();

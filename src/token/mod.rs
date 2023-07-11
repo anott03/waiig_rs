@@ -6,6 +6,14 @@ pub enum Token {
     IDENT(String),
     INT(String),
 
+    FUNCTION,
+    LET,
+    TRUE,
+    FALSE,
+    IF,
+    ELSE,
+    RETURN,
+
     ILLEGAL,
     EOF,
     COMMA,
@@ -14,13 +22,6 @@ pub enum Token {
     RPAREN,
     LSQUIRLY,
     RSQUIRLY,
-    FUNCTION,
-    LET,
-    TRUE,
-    FALSE,
-    IF,
-    ELSE,
-    RETURN,
 
     ASSIGN,
     PLUS,
@@ -39,6 +40,12 @@ pub fn lookup_ident(ident: String) -> Token {
     let mut keywords: HashMap<&str, Token> = HashMap::new();
 
     keywords.insert("let", Token::LET);
+    keywords.insert("fn", Token::FUNCTION);
+    keywords.insert("true", Token::TRUE);
+    keywords.insert("false", Token::FALSE);
+    keywords.insert("if", Token::IF);
+    keywords.insert("else", Token::ELSE);
+    keywords.insert("return", Token::RETURN);
 
     return match keywords.get(ident.as_str()) {
         Some(x) => x.clone(),

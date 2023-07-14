@@ -7,11 +7,11 @@ fn next_token() {
     let input = String::from("=+(){},;");
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
-    assert_eq!(t, Token::ASSIGN(String::from("=")));
+    assert_eq!(t, Token::ASSIGN);
     t = l.next_token();
-    assert_eq!(t, Token::PLUS(String::from("+")));
+    assert_eq!(t, Token::PLUS);
     t = l.next_token();
-    assert_eq!(t, Token::LPAREN(String::from("(")));
+    assert_eq!(t, Token::LPAREN);
 }
 
 #[test]
@@ -29,7 +29,7 @@ let result = add(five, ten);
 ");
     let mut l = Lexer::new(input);
     let t = l.next_token();
-    assert_eq!(t, Token::LET(String::from("let")));
+    assert_eq!(t, Token::LET);
     // t = l.next_token();
     // assert_eq!(t, Token::IDENT(String::from("five")));
 }
@@ -39,11 +39,11 @@ fn read_identifier() {
     let input = String::from("let five = 5");
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
-    assert_eq!(t, Token::LET(String::from("let")));
+    assert_eq!(t, Token::LET);
     t = l.next_token();
     assert_eq!(t, Token::IDENT(String::from("five")));
     t = l.next_token();
-    assert_eq!(t, Token::ASSIGN(String::from("=")));
+    assert_eq!(t, Token::ASSIGN);
     t = l.next_token();
     assert_eq!(t, Token::INT(String::from("5")));
 }

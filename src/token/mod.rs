@@ -53,6 +53,38 @@ pub fn lookup_ident(ident: String) -> Token {
     }
 }
 
+pub fn get_literal(token: &Token) -> String {
+    return match token {
+        Token::IDENT(s) => s.to_string(),
+        Token::INT(s) => s.to_string(),
+        Token::FUNCTION => String::from("fn"),
+        Token::LET => String::from("let"),
+        Token::TRUE => String::from("true"),
+        Token::FALSE => String::from("false"),
+        Token::IF => String::from("if"),
+        Token::ELSE => String::from("else"),
+        Token::RETURN => String::from("return"),
+        Token::ILLEGAL => String::from("ILLEGAL"),
+        Token::EOF => String::from("\0"),
+        Token::COMMA => String::from(","),
+        Token::SEMICOLON => String::from(";"),
+        Token::LPAREN => String::from("("),
+        Token::RPAREN => String::from(")"),
+        Token::LSQUIRLY => String::from("{"),
+        Token::RSQUIRLY => String::from("}"),
+        Token::ASSIGN => String::from("="),
+        Token::PLUS => String::from("+"),
+        Token::MINUS => String::from("-"),
+        Token::BANG => String::from("!"),
+        Token::ASTERISK => String::from("*"),
+        Token::SLASH => String::from("/"),
+        Token::LT => String::from("<"),
+        Token::GT => String::from(">"),
+        Token::EQ => String::from("=="),
+        Token::NEQ => String::from("!="),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{token, token::Token};

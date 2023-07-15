@@ -23,7 +23,7 @@ impl Lexer {
     }
 
     pub fn read_char(&mut self) {
-        if self.read_position >= self.input.len().try_into().unwrap() {
+        if self.read_position >= self.input.len().into() {
             self.ch = '\0';
         } else {
             self.ch = self
@@ -91,15 +91,17 @@ impl Lexer {
 
             '=' => {
                 if self.peek_char() == '=' {
-                    return Token::EQ;
+                    Token::EQ
+                } else {
+                    Token::ASSIGN
                 }
-                return Token::ASSIGN
             },
             '!' => {
                 if self.peek_char() == '=' {
-                    return Token::NEQ;
+                    Token::NEQ
+                } else {
+                    Token::BANG
                 }
-                return Token::BANG;
             },
 
             _ => {
@@ -108,7 +110,9 @@ impl Lexer {
                     token::lookup_ident(literal)
                 } 
                 else if self.ch.is_digit(10) {
-                    Token::INT(self.read_number())
+                    // intentionally omit self.read_char() as it is taken care
+                    // of in read_number
+                    return Token::INT(self.read_number());
                 } else {
                     Token::ILLEGAL
                 }

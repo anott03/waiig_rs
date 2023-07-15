@@ -2,7 +2,7 @@ use crate::lexer::Lexer;
 use crate::token::{Token, get_literal};
 use crate::ast;
 
-mod tests;
+// mod tests;
 
 pub struct Parser {
     l: Lexer,

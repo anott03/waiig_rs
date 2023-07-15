@@ -7,6 +7,8 @@ fn parse_let_statement() {
 
     let input = "let x = 5;";
     let l = Lexer::new(input.to_string());
-    let p = Parser::new(l);
-    p.parse_program();
+    let mut p = Parser::new(l);
+    if let Some(prog) = p.parse_program() {
+        assert!(prog.statements.len() == 3);
+    }
 }

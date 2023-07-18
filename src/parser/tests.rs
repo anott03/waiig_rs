@@ -9,6 +9,8 @@ fn parse_let_statement() {
     let l = Lexer::new(input.to_string());
     let mut p = Parser::new(l);
     if let Some(prog) = p.parse_program() {
-        assert!(prog.statements.len() == 3);
+        println!("{:?}", prog.statements);
+        assert!(prog.statements.len() == 1);
     }
+    assert!(false);
 }

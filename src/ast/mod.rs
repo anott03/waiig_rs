@@ -1,5 +1,6 @@
 use crate::token::{get_literal, Token};
 
+#[derive(Debug)]
 pub struct Identifier {
     pub token: Token,
     pub value: String,
@@ -11,8 +12,10 @@ impl Identifier {
     }
 }
 
+#[derive(Debug)]
 pub struct Expression {}
 
+#[derive(Debug)]
 pub struct LetStatement {
     pub token: Token,
     pub name: Identifier,
@@ -25,6 +28,7 @@ impl LetStatement {
     }
 }
 
+#[derive(Debug)]
 pub enum Statement {
     LetStatement(LetStatement)
 }

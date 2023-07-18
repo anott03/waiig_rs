@@ -29,29 +29,32 @@ impl Parser {
         self.peek_token = Some(self.l.next_token());
     }
 
-    fn expect_peek(&self, t: Token) -> bool {
-        if let Some(tok) = &self.peek_token {
+    fn expect_peek(&mut self, t: Token) -> bool {
+        if let Some(tok) = self.peek_token.clone() {
             return match t {
                 Token::IDENT(_) => {
                     if let Token::IDENT(_) = tok {
                         return true;
                     }
+                    self.peek_error(t);
                     return false;
                 },
                 Token::INT(_) => {
                     if let Token::INT(_) = tok {
                         return true;
                     }
+                    self.peek_error(t);
                     return false;
                 },
-                _ => self.curr_token.clone().unwrap() == t,
+                _ => tok == t,
             };
         }
+        self.peek_error(t);
         return false;
     }
 
     fn expect_curr(&self, t: Token) -> bool {
-        if let Some(tok) = &self.curr_token {
+        if let Some(tok) = self.curr_token.clone() {
             return match t {
                 Token::IDENT(_) => {
                     if let Token::IDENT(_) = tok {
@@ -65,14 +68,14 @@ impl Parser {
                     }
                     return false;
                 },
-                _ => self.curr_token.clone().unwrap() == t,
+                _ => tok == t,
             };
         }
         return false;
     }
 
     fn peek_error(&mut self, t: Token) {
-        let msg = format!("expected next token to be {:?}, got {:?} instead", t, self.peek_token);
+        let msg = format!("expected next token to be {:?}, got {:?} instead", t, self.peek_token.as_ref().unwrap());
         self.errors.push(msg);
     }
 

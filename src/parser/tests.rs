@@ -38,3 +38,20 @@ fn peek_error() {
         // }
     }
 }
+
+#[test]
+fn return_statement() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+
+    let input = "return 5;
+    return 10;
+    return 993322;
+    ";
+    let l = Lexer::new(input.to_string());
+    let mut p = Parser::new(l);
+    if let Some(prog) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(prog.statements.len() == 3);
+    }
+}

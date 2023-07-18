@@ -107,9 +107,22 @@ impl Parser {
         return Some(ast::Statement::LetStatement(stmt));
     }
 
+    fn parse_return_statement(&mut self) -> Option<ast::Statement> {
+        let stmt = ast::ReturnStatement {
+            token: self.curr_token.clone().unwrap(),
+            return_val: ast::Expression{}
+        };
+        // TODO: parse expression
+        while !self.expect_curr(Token::SEMICOLON) {
+            self.next_token();
+        }
+        return Some(ast::Statement::ReturnStatement(stmt));
+    }
+
     fn parse_statement(&mut self) -> Option<ast::Statement> {
         return match self.curr_token {
             Some(Token::LET) => self.parse_let_statement(),
+            Some(Token::RETURN) => self.parse_return_statement(),
             _ => None,
         }
     }

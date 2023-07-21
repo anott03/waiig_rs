@@ -4,6 +4,22 @@ use crate::ast;
 
 mod tests;
 
+type PrefixParseFn = fn() -> ast::Expression;
+type InfixParseFn = fn(ast::Expression) -> ast::Expression;
+
+fn get_prefix_fn(token: Token) -> Option<PrefixParseFn> { None }
+fn get_infix_fn(token: Token) -> Option<InfixParseFn> { None }
+
+enum Priority {
+    LOWEST,
+    EQUALS,
+    LESSGREATER,
+    SUM,
+    PRODUCT,
+    PREFIX,
+    CALL,
+}
+
 pub struct Parser {
     l: Lexer,
     pub curr_token: Option<Token>,
@@ -119,11 +135,34 @@ impl Parser {
         return Some(ast::Statement::ReturnStatement(stmt));
     }
 
+    fn parse_expression(&mut self, p: Priority) -> Option<ast::Expression> {
+        if let Some(prefix) = get_prefix_fn(self.curr_token.clone().unwrap()) {
+            return Some(prefix());
+        }
+        return None;
+    }
+
+    fn parse_expression_statement(&mut self) -> Option<ast::Statement> {
+        let stmt = ast::ExpressionStatement {
+            token: self.curr_token.clone().unwrap(),
+            expression: match self.parse_expression(Priority::LOWEST) {
+                Some(exp) => exp,
+                None => ast::Expression {},
+            },
+        };
+
+        if self.peek_token.clone().unwrap() == Token::SEMICOLON {
+            self.next_token();
+        }
+
+        return Some(ast::Statement::ExpressionStatement(stmt));
+    }
+
     fn parse_statement(&mut self) -> Option<ast::Statement> {
         return match self.curr_token {
             Some(Token::LET) => self.parse_let_statement(),
             Some(Token::RETURN) => self.parse_return_statement(),
-            _ => None,
+            _ => self.parse_expression_statement(),
         }
     }
 

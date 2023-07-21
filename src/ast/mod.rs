@@ -61,7 +61,7 @@ impl ReturnStatement {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExpressionStatement {
     pub token: Token,
     pub expression: Expression,
@@ -71,12 +71,18 @@ impl ExpressionStatement {
     pub fn token_literal(&self) -> String {
         return get_literal(&self.token);
     }
+
+    pub fn to_string(&self) -> String {
+        // TODO
+        return get_literal(&self.token);
+    }
 }
 
 #[derive(Debug, Clone)]
 pub enum Statement {
     LetStatement(LetStatement),
     ReturnStatement(ReturnStatement),
+    ExpressionStatement(ExpressionStatement),
 }
 
 impl Statement {
@@ -88,6 +94,7 @@ impl Statement {
         return match self {
             Statement::LetStatement(ls) => ls.to_string(),
             Statement::ReturnStatement(rs) => rs.to_string(),
+            Statement::ExpressionStatement(es) => es.to_string(),
         }
     }
 }

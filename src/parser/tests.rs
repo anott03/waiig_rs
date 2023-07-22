@@ -55,3 +55,28 @@ fn return_statement() {
         assert!(prog.statements.len() == 3);
     }
 }
+
+#[test]
+fn parse_identifier() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "foobar;";
+    let l = Lexer::new(input.to_string());
+    let mut p = Parser::new(l);
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+        let stmt = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = stmt {
+            if let ast::Expression::Identifier(ident) = es.expression {
+                assert_eq!(ident.value, "foobar");
+            } else {
+                panic!("ExpressionStatement expression is not an identifier");
+            }
+        } else {
+            panic!("statement not an ExpressionStatement");
+        }
+    }
+}

@@ -17,7 +17,10 @@ impl Identifier {
 }
 
 #[derive(Debug, Clone)]
-pub struct Expression {}
+pub enum Expression {
+    Empty,
+    Identifier(Identifier),
+}
 
 impl Expression {
     pub fn to_string(&self) -> String {

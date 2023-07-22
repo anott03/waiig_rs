@@ -4,10 +4,23 @@ use crate::ast;
 
 mod tests;
 
-type PrefixParseFn = fn() -> ast::Expression;
-type InfixParseFn = fn(ast::Expression) -> ast::Expression;
+type PrefixParseFn = fn(&Parser) -> ast::Expression;
+type InfixParseFn = fn(&Parser, ast::Expression) -> ast::Expression;
 
-fn get_prefix_fn(token: Token) -> Option<PrefixParseFn> { None }
+fn parse_identifier(p: &Parser) -> ast::Expression {
+    return ast::Expression::Identifier(ast::Identifier{
+        token: p.curr_token.clone().unwrap(),
+        value: get_literal(&p.curr_token.clone().unwrap())
+    })
+}
+
+fn get_prefix_fn(token: Token) -> Option<PrefixParseFn> {
+    return match token {
+        Token::IDENT(_) => Some(parse_identifier),
+        _ => None
+    }
+}
+
 fn get_infix_fn(token: Token) -> Option<InfixParseFn> { None }
 
 enum Priority {
@@ -126,7 +139,7 @@ impl Parser {
     fn parse_return_statement(&mut self) -> Option<ast::Statement> {
         let stmt = ast::ReturnStatement {
             token: self.curr_token.clone().unwrap(),
-            return_val: ast::Expression{}
+            return_val: ast::Expression::Empty
         };
         // TODO: parse expression
         while !self.expect_curr(Token::SEMICOLON) {
@@ -137,7 +150,7 @@ impl Parser {
 
     fn parse_expression(&mut self, p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(self.curr_token.clone().unwrap()) {
-            return Some(prefix());
+            return Some(prefix(self));
         }
         return None;
     }
@@ -147,7 +160,7 @@ impl Parser {
             token: self.curr_token.clone().unwrap(),
             expression: match self.parse_expression(Priority::LOWEST) {
                 Some(exp) => exp,
-                None => ast::Expression {},
+                None => ast::Expression::Empty,
             },
         };
 

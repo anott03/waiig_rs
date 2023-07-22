@@ -5,7 +5,7 @@ use crate::ast;
 mod tests;
 
 type PrefixParseFn = fn(&Parser) -> Option<ast::Expression>;
-type InfixParseFn = fn(&Parser, ast::Expression) -> Option<ast::Expression>;
+type InfixParseFn<'a> = fn(&Parser, ast::Expression<'a>) -> Option<ast::Expression<'a>>;
 
 fn parse_identifier(p: &Parser) -> Option<ast::Expression> {
     return Some(ast::Expression::Identifier(ast::Identifier{
@@ -34,7 +34,7 @@ fn get_prefix_fn(token: Token) -> Option<PrefixParseFn> {
     }
 }
 
-fn get_infix_fn(token: Token) -> Option<InfixParseFn> { None }
+fn get_infix_fn(token: Token) -> Option<InfixParseFn<'static>> { None }
 
 enum Priority {
     LOWEST,
@@ -53,7 +53,14 @@ pub struct Parser {
     pub errors: Vec<String>,
 }
 
+impl Clone for Parser {
+    fn clone(&self) -> Self {
+        Self { l: self.l.clone(), curr_token: self.curr_token.clone(), peek_token: self.peek_token.clone(), errors: self.errors.clone() }
+    }
+}
+
 impl Parser {
+
     pub fn new(l: Lexer) -> Self {
         let mut p = Self {
             l,
@@ -161,14 +168,14 @@ impl Parser {
         return Some(ast::Statement::ReturnStatement(stmt));
     }
 
-    fn parse_expression(&mut self, p: Priority) -> Option<ast::Expression> {
+    fn parse_expression(&self, p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(self.curr_token.clone().unwrap()) {
             return prefix(self);
         }
         return None;
     }
 
-    fn parse_expression_statement(&mut self) -> Option<ast::Statement> {
+    fn parse_expression_statement(&self) -> Option<ast::Statement> {
         let stmt = ast::ExpressionStatement {
             token: self.curr_token.clone().unwrap(),
             expression: match self.parse_expression(Priority::LOWEST) {
@@ -177,26 +184,31 @@ impl Parser {
             },
         };
 
-        if self.peek_token.clone().unwrap() == Token::SEMICOLON {
-            self.next_token();
-        }
+        // if self.peek_token.as_ref().unwrap() == &Token::SEMICOLON {
+        //     self.next_token();
+        // }
 
         return Some(ast::Statement::ExpressionStatement(stmt));
     }
 
-    fn parse_statement(&mut self) -> Option<ast::Statement> {
+    fn parse_statement(&'static mut self) -> Option<ast::Statement> {
         return match self.curr_token {
             Some(Token::LET) => self.parse_let_statement(),
             Some(Token::RETURN) => self.parse_return_statement(),
-            _ => self.parse_expression_statement(),
+            _ => {
+                if self.peek_token.as_ref().unwrap() == &Token::SEMICOLON {
+                    self.next_token();
+                }
+                self.parse_expression_statement()
+            },
         }
     }
 
-    fn parse_program(&mut self) -> Option<ast::Program> {
+    fn parse_program(&'static mut self) -> Option<ast::Program> {
         let mut prog = ast::Program{
             statements: Vec::new(),
         };
-        while self.curr_token != Some(Token::EOF) {
+        while self.curr_token.as_ref().unwrap() != &Token::EOF {
             let stmt = self.parse_statement();
             if let Some(s) = stmt {
                 prog.statements.push(s);

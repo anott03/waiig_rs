@@ -33,26 +33,34 @@ impl IntegerLiteral {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expression {
+pub struct PrefixExpression<'a> {
+    pub token: Token,
+    pub operator: String,
+    pub right: &'a Expression<'a>,
+}
+
+#[derive(Debug, Clone)]
+pub enum Expression<'a> {
     Empty,
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),
+    PrefixExpression(PrefixExpression<'a>),
 }
 
-impl Expression {
+impl Expression<'_> {
     pub fn to_string(&self) -> String {
         return String::from("expression");
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct LetStatement {
+pub struct LetStatement<'a> {
     pub token: Token,
     pub name: Identifier,
-    pub value: Option<Expression>,
+    pub value: Option<Expression<'a>>,
 }
 
-impl LetStatement {
+impl LetStatement<'_> {
     pub fn token_literal(&self) -> String {
         return get_literal(&self.token);
     }
@@ -66,12 +74,12 @@ impl LetStatement {
 }
 
 #[derive(Debug, Clone)]
-pub struct ReturnStatement {
+pub struct ReturnStatement<'a> {
     pub token: Token,
-    pub return_val: Expression,
+    pub return_val: Expression<'a>,
 }
 
-impl ReturnStatement {
+impl ReturnStatement<'_> {
     pub fn token_literal(&self) -> String {
         return get_literal(&self.token);
     }
@@ -82,12 +90,12 @@ impl ReturnStatement {
 }
 
 #[derive(Debug, Clone)]
-pub struct ExpressionStatement {
+pub struct ExpressionStatement<'a> {
     pub token: Token,
-    pub expression: Expression,
+    pub expression: Expression<'a>,
 }
 
-impl ExpressionStatement {
+impl ExpressionStatement<'_> {
     pub fn token_literal(&self) -> String {
         return get_literal(&self.token);
     }
@@ -99,13 +107,13 @@ impl ExpressionStatement {
 }
 
 #[derive(Debug, Clone)]
-pub enum Statement {
-    LetStatement(LetStatement),
-    ReturnStatement(ReturnStatement),
-    ExpressionStatement(ExpressionStatement),
+pub enum Statement<'a> {
+    LetStatement(LetStatement<'a>),
+    ReturnStatement(ReturnStatement<'a>),
+    ExpressionStatement(ExpressionStatement<'a>),
 }
 
-impl Statement {
+impl Statement<'_> {
     pub fn token_literal(&self) -> String {
         return String::from("");
     }
@@ -120,11 +128,11 @@ impl Statement {
 }
 
 #[derive(Clone)]
-pub struct Program {
-    pub statements: Vec<Statement>,
+pub struct Program<'a> {
+    pub statements: Vec<Statement<'a>>,
 }
 
-impl Program {
+impl Program<'_> {
     pub fn token_literal(&self) -> String {
         if self.statements.len() > 0 {
             return self.statements.first().unwrap().token_literal();

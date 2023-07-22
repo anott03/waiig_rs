@@ -2,6 +2,7 @@ use crate::token::{self, Token};
 
 mod tests;
 
+#[derive(Clone)]
 pub struct Lexer {
     input: String,
     position: usize,

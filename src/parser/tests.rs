@@ -80,3 +80,29 @@ fn parse_identifier() {
         }
     }
 }
+
+#[test]
+fn parse_integer_literal() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+    
+    let input = "5;";
+    let l = Lexer::new(input.to_string());
+    let mut p = Parser::new(l);
+    
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+        let stmt = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = stmt {
+            if let ast::Expression::IntegerLiteral(int) = es.expression {
+                assert_eq!(int.value, 5);
+            } else {
+                panic!("ExpressionStatement expression is not an integer literal");
+            }
+        } else {
+            panic!("statement not an ExpressionStatement");
+        }
+    }
+}

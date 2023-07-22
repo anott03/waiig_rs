@@ -17,9 +17,26 @@ impl Identifier {
 }
 
 #[derive(Debug, Clone)]
+pub struct IntegerLiteral {
+    pub token: Token,
+    pub value: i32,
+}
+
+impl IntegerLiteral {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        return get_literal(&self.token);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum Expression {
     Empty,
     Identifier(Identifier),
+    IntegerLiteral(IntegerLiteral),
 }
 
 impl Expression {

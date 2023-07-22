@@ -4,19 +4,32 @@ use crate::ast;
 
 mod tests;
 
-type PrefixParseFn = fn(&Parser) -> ast::Expression;
-type InfixParseFn = fn(&Parser, ast::Expression) -> ast::Expression;
+type PrefixParseFn = fn(&Parser) -> Option<ast::Expression>;
+type InfixParseFn = fn(&Parser, ast::Expression) -> Option<ast::Expression>;
 
-fn parse_identifier(p: &Parser) -> ast::Expression {
-    return ast::Expression::Identifier(ast::Identifier{
+fn parse_identifier(p: &Parser) -> Option<ast::Expression> {
+    return Some(ast::Expression::Identifier(ast::Identifier{
         token: p.curr_token.clone().unwrap(),
         value: get_literal(&p.curr_token.clone().unwrap())
-    })
+    }));
+}
+
+fn parse_integer_literal(p: &Parser) -> Option<ast::Expression> {
+    if let Ok(val) = get_literal(&p.curr_token.clone().unwrap()).parse() {
+        let lit = ast::IntegerLiteral {
+            token: p.curr_token.clone().unwrap(),
+            value: val,
+        };
+
+        return Some(ast::Expression::IntegerLiteral(lit));
+    }
+    return None;
 }
 
 fn get_prefix_fn(token: Token) -> Option<PrefixParseFn> {
     return match token {
         Token::IDENT(_) => Some(parse_identifier),
+        Token::INT(_) => Some(parse_integer_literal),
         _ => None
     }
 }
@@ -150,7 +163,7 @@ impl Parser {
 
     fn parse_expression(&mut self, p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(self.curr_token.clone().unwrap()) {
-            return Some(prefix(self));
+            return prefix(self);
         }
         return None;
     }

@@ -4,7 +4,7 @@ use crate::token::Token;
 
 #[test]
 fn read_char() {
-    let input = String::from("let five = 5;");
+    let input = "let five = 5;";
     let mut l = Lexer::new(input);
     assert!(l.ch == 'l');
     l.read_char();
@@ -13,7 +13,7 @@ fn read_char() {
 
 #[test]
 fn read_number() {
-    let input = String::from("12345");
+    let input = "12345";
     let mut l = Lexer::new(input);
     let num = l.read_number();
     assert_eq!(num, String::from("12345"));
@@ -21,7 +21,7 @@ fn read_number() {
 
 #[test]
 fn next_token() {
-    let input = String::from("=+(){},;");
+    let input = "=+(){},;";
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
     assert_eq!(t, Token::ASSIGN);
@@ -33,7 +33,7 @@ fn next_token() {
 
 #[test]
 fn next_token_code() {
-    let input = String::from("let five = 5;
+    let input = "let five = 5;
 let ten = 10;
 
 let add = fn(x, y) {
@@ -43,7 +43,7 @@ let add = fn(x, y) {
 let result = add(five, ten);
 !-/*5;
 5 < 10 > 5;
-");
+";
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
     assert_eq!(t, Token::LET);
@@ -59,7 +59,7 @@ let result = add(five, ten);
 
 #[test]
 fn read_identifier() {
-    let input = String::from("let five = 5");
+    let input = "let five = 5";
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
     assert_eq!(t, Token::LET);

@@ -3,18 +3,18 @@ use crate::token::{self, Token};
 mod tests;
 
 #[derive(Clone)]
-pub struct Lexer {
-    input: String,
+pub struct Lexer<'a> {
+    input: &'a [u8],
     position: usize,
     read_position: usize,
     ch: char
 }
 
 #[allow(dead_code)]
-impl Lexer {
-    pub fn new(inpt: String) -> Self {
+impl<'a> Lexer<'a> {
+    pub fn new(inpt: &'a str) -> Self {
         let mut l = Lexer {
-            input: inpt,
+            input: inpt.as_bytes(),
             position: 0,
             read_position: 0,
             ch: '\0',
@@ -27,10 +27,7 @@ impl Lexer {
         if self.read_position >= self.input.len().into() {
             self.ch = '\0';
         } else {
-            self.ch = self
-                .input
-                .chars()
-                .collect::<Vec<char>>()[self.read_position];
+            self.ch = self.input[self.read_position].into();
         }
         self.position = self.read_position;
         self.read_position += 1;
@@ -41,10 +38,9 @@ impl Lexer {
         while self.ch.is_alphabetic() || self.ch == '_' {
             self.read_char();
         }
-        let chars = self.input.chars().collect::<Vec<char>>();
         let mut s = String::new();
         for i in position..self.position {
-            s.push(chars[i]);
+            s.push(self.input[i].into());
         }
         return s;
     }
@@ -54,10 +50,9 @@ impl Lexer {
         while self.ch.is_digit(10) {
             self.read_char();
         }
-        let chars = self.input.chars().collect::<Vec<char>>();
         let mut s = String::new();
         for i in position..self.position {
-            s.push(chars[i]);
+            s.push(self.input[i].into());
         }
         return s;
     }
@@ -66,7 +61,7 @@ impl Lexer {
         if self.read_position >= self.input.len() {
             return '\0';
         }
-        return self.input.chars().collect::<Vec<char>>()[self.read_position];
+        return self.input[self.read_position].into();
     }
 
     pub fn next_token(&mut self) -> Token {

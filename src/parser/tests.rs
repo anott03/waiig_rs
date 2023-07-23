@@ -6,7 +6,7 @@ fn parse_let_statement() {
     use crate::lexer::Lexer;
 
     let input = "let x = 5;";
-    let l = Lexer::new(input.to_string());
+    let l = Lexer::new(input);
     let mut p = Parser::new(l);
     if let Some(prog) = p.parse_program() {
         if p.errors.len() != 0 {
@@ -26,7 +26,7 @@ fn peek_error() {
     use crate::lexer::Lexer;
 
     let input = "let = 5;";
-    let l = Lexer::new(input.to_string());
+    let l = Lexer::new(input);
     let mut p = Parser::new(l);
     if let Some(_) = p.parse_program() {
         assert!(p.errors.len() > 0);
@@ -48,7 +48,7 @@ fn return_statement() {
     return 10;
     return 993322;
     ";
-    let l = Lexer::new(input.to_string());
+    let l = Lexer::new(input);
     let mut p = Parser::new(l);
     if let Some(prog) = p.parse_program() {
         assert!(p.errors.len() == 0);
@@ -63,7 +63,7 @@ fn parse_identifier() {
     use crate::ast;
 
     let input = "foobar;";
-    let l = Lexer::new(input.to_string());
+    let l = Lexer::new(input);
     let mut p = Parser::new(l);
     if let Some(program) = p.parse_program() {
         assert!(p.errors.len() == 0);
@@ -88,7 +88,7 @@ fn parse_integer_literal() {
     use crate::ast;
     
     let input = "5;";
-    let l = Lexer::new(input.to_string());
+    let l = Lexer::new(input);
     let mut p = Parser::new(l);
     
     if let Some(program) = p.parse_program() {

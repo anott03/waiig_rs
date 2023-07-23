@@ -1,20 +1,22 @@
+use std::sync::Mutex;
+
 use crate::lexer::Lexer;
 use crate::token::{Token, get_literal};
 use crate::ast;
 
 mod tests;
 
-type PrefixParseFn = fn(&Parser) -> Option<ast::Expression>;
+type PrefixParseFn<'a> = fn(&Parser) -> Option<ast::Expression<'a>>;
 type InfixParseFn<'a> = fn(&Parser, ast::Expression<'a>) -> Option<ast::Expression<'a>>;
 
-fn parse_identifier(p: &Parser) -> Option<ast::Expression> {
+fn parse_identifier<'a>(p: &Parser) -> Option<ast::Expression<'a>> {
     return Some(ast::Expression::Identifier(ast::Identifier{
         token: p.curr_token.clone(),
         value: get_literal(&p.curr_token)
     }));
 }
 
-fn parse_integer_literal(p: &Parser) -> Option<ast::Expression> {
+fn parse_integer_literal<'a>(p: &Parser) -> Option<ast::Expression<'a>> {
     if let Ok(val) = get_literal(&p.curr_token).parse() {
         let lit = ast::IntegerLiteral {
             token: p.curr_token.clone(),
@@ -34,7 +36,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
     }
 }
 
-fn get_infix_fn(token: Token) -> Option<InfixParseFn<'static>> { None }
+fn get_infix_fn(_token: Token) -> Option<InfixParseFn<'static>> { None }
 
 enum Priority {
     LOWEST,
@@ -46,22 +48,15 @@ enum Priority {
     CALL,
 }
 
-pub struct Parser {
-    l: Lexer,
+pub struct Parser<'a> {
+    l: Lexer<'a>,
     pub curr_token: Token,
     pub peek_token: Token,
-    pub errors: Vec<String>,
+    pub errors: Vec<String>
 }
 
-impl Clone for Parser {
-    fn clone(&self) -> Self {
-        Self { l: self.l.clone(), curr_token: self.curr_token.clone(), peek_token: self.peek_token.clone(), errors: self.errors.clone() }
-    }
-}
-
-impl Parser {
-
-    pub fn new(l: Lexer) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(l: Lexer<'a>) -> Self {
         let mut p = Self {
             l,
             curr_token: Token::EOF,
@@ -168,7 +163,7 @@ impl Parser {
         return Some(ast::Statement::ReturnStatement(stmt));
     }
 
-    fn parse_expression(&self, p: Priority) -> Option<ast::Expression> {
+    fn parse_expression(&self, _p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(&self.curr_token) {
             return prefix(self);
         }

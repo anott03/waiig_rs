@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use crate::lexer::Lexer;
 use crate::token::{Token, get_literal};
 use crate::ast;
@@ -205,7 +203,7 @@ impl<'a> Parser<'a> {
         };
         while self.curr_token.clone() != Token::EOF {
             if let Some(statement) = self.parse_statement() {
-                prog.statements.push(statement);
+                prog.statements.push(statement.clone());
             }
             self.next_token();
         }

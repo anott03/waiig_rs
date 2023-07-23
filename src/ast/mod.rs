@@ -36,7 +36,7 @@ impl IntegerLiteral {
 pub struct PrefixExpression<'a> {
     pub token: Token,
     pub operator: String,
-    pub right: &'a Expression<'a>,
+    pub right: Expression<'a>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +44,7 @@ pub enum Expression<'a> {
     Empty,
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),
-    PrefixExpression(PrefixExpression<'a>),
+    PrefixExpression(&'a PrefixExpression<'a>),
 }
 
 impl Expression<'_> {

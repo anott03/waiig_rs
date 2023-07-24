@@ -39,6 +39,16 @@ pub struct PrefixExpression {
     pub right: Box<Expression>,
 }
 
+impl PrefixExpression {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        return format!("({}{})", self.operator, self.right.to_string());
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Expression {
     Empty,
@@ -49,7 +59,12 @@ pub enum Expression {
 
 impl Expression {
     pub fn to_string(&self) -> String {
-        return String::from("expression");
+        return match self {
+            Expression::Empty => String::new(),
+            Expression::Identifier(i) => i.to_string(),
+            Expression::IntegerLiteral(il) => il.to_string(),
+            Expression::PrefixExpression(pe) => pe.to_string(),
+        }
     }
 }
 
@@ -67,9 +82,9 @@ impl LetStatement {
 
     pub fn to_string(&self) -> String {
         if let Some(val) = &self.value {
-            return get_literal(&self.token) + " " + self.name.to_string().as_str() + " = " + val.to_string().as_str();
+            return format!("{} {} = {}", get_literal(&self.token), self.name.to_string(), val.to_string());
         }
-        return get_literal(&self.token) + " " + self.name.to_string().as_str() + " = null";
+        return format!("{} {} = null", get_literal(&self.token), self.name.to_string());
     }
 }
 
@@ -127,7 +142,7 @@ impl Statement {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Program {
     pub statements: Vec<Statement>,
 }
@@ -154,7 +169,7 @@ mod tests {
     use crate::ast::*;
 
     #[test]
-    fn string() {
+    fn string1() {
         let program = Program {
             statements: vec![
                 Statement::LetStatement(LetStatement {
@@ -167,5 +182,24 @@ mod tests {
 
         println!("{}", program.clone().to_string());
         assert_eq!(program.to_string(), String::from("let x = null"));
+    }
+
+    #[test]
+    fn string2() {
+        let program = Program {
+            statements: vec![
+                Statement::LetStatement(LetStatement {
+                    token: Token::LET,
+                    name: Identifier { token: Token::IDENT(String::from("x")), value: String::from("x") },
+                    value: Some(Expression::IntegerLiteral(IntegerLiteral {
+                        token: Token::INT(String::from("5")),
+                        value: 5,
+                    })),
+                }),
+            ],
+        };
+
+        println!("{}", program.clone().to_string());
+        assert_eq!(program.to_string(), String::from("let x = 5"));
     }
 }

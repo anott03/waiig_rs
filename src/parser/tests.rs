@@ -106,3 +106,35 @@ fn parse_integer_literal() {
         }
     }
 }
+
+#[test]
+fn parse_prefix_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "-5";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+        let stmt = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = stmt {
+            if let ast::Expression::PrefixExpression(pe) = es.expression {
+                assert_eq!("-", pe.operator);
+                let right = *pe.right;
+                if let ast::Expression::IntegerLiteral(i) = right {
+                    assert_eq!(5, i.value);
+                } else {
+                    panic!("right is not an IntegerLiteral");
+                }
+            } else {
+                panic!("ExpressionStatement expression is not a PrefixExpression");
+            }
+        } else {
+            panic!("statement is not an ExpressionStatement");
+        }
+    }
+}

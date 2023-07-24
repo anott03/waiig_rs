@@ -4,17 +4,27 @@ use crate::ast;
 
 mod tests;
 
-type PrefixParseFn = fn(&Parser) -> Option<ast::Expression>;
-type InfixParseFn = fn(&Parser, ast::Expression) -> Option<ast::Expression>;
+type PrefixParseFn = fn(&mut Parser) -> Option<ast::Expression>;
+type InfixParseFn = fn(&mut Parser, ast::Expression) -> Option<ast::Expression>;
 
-fn parse_identifier(p: &Parser) -> Option<ast::Expression> {
+enum Priority {
+    LOWEST,
+    EQUALS,
+    LESSGREATER,
+    SUM,
+    PRODUCT,
+    PREFIX,
+    CALL,
+}
+
+fn parse_identifier(p: &mut Parser) -> Option<ast::Expression> {
     return Some(ast::Expression::Identifier(ast::Identifier{
         token: p.curr_token.clone(),
         value: get_literal(&p.curr_token)
     }));
 }
 
-fn parse_integer_literal(p: &Parser) -> Option<ast::Expression> {
+fn parse_integer_literal(p: &mut Parser) -> Option<ast::Expression> {
     if let Ok(val) = get_literal(&p.curr_token).parse() {
         let lit = ast::IntegerLiteral {
             token: p.curr_token.clone(),
@@ -26,25 +36,27 @@ fn parse_integer_literal(p: &Parser) -> Option<ast::Expression> {
     return None;
 }
 
+fn parse_prefix_expression(p: &mut Parser) -> Option<ast::Expression> {
+    let tok = p.curr_token.clone();
+    p.next_token();
+    let expression = ast::PrefixExpression {
+        token: tok.clone(),
+        operator: get_literal(&tok),
+        right: Box::new(p.parse_expression(Priority::PREFIX).unwrap()),
+    };
+    return Some(ast::Expression::PrefixExpression(expression));
+}
+
 fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
     return match token {
         Token::IDENT(_) => Some(parse_identifier),
         Token::INT(_) => Some(parse_integer_literal),
+        Token::BANG | Token::MINUS => Some(parse_prefix_expression),
         _ => None
     }
 }
 
 fn get_infix_fn(_token: Token) -> Option<InfixParseFn> { None }
-
-enum Priority {
-    LOWEST,
-    EQUALS,
-    LESSGREATER,
-    SUM,
-    PRODUCT,
-    PREFIX,
-    CALL,
-}
 
 pub struct Parser<'a> {
     l: Lexer<'a>,
@@ -126,6 +138,11 @@ impl<'a> Parser<'a> {
         self.errors.push(msg);
     }
 
+    fn no_prefix_parse_fn_error(&mut self, t: Token) {
+        let msg = format!("no prefix parse function for {} found", get_literal(&t));
+        self.errors.push(msg);
+    }
+
     fn parse_let_statement(&mut self) -> Option<ast::Statement> {
         let mut stmt = ast::LetStatement{
             token: self.curr_token.clone(),
@@ -165,10 +182,11 @@ impl<'a> Parser<'a> {
         return Some(ast::Statement::ReturnStatement(stmt));
     }
 
-    fn parse_expression(&self, _p: Priority) -> Option<ast::Expression> {
+    fn parse_expression(&mut self, _p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(&self.curr_token) {
             return prefix(self);
         }
+        self.no_prefix_parse_fn_error(self.curr_token.clone());
         return None;
     }
 

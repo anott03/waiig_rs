@@ -87,6 +87,7 @@ impl<'a> Lexer<'a> {
 
             '=' => {
                 if self.peek_char() == '=' {
+                    self.next_token();
                     Token::EQ
                 } else {
                     Token::ASSIGN
@@ -94,6 +95,7 @@ impl<'a> Lexer<'a> {
             },
             '!' => {
                 if self.peek_char() == '=' {
+                    self.next_token();
                     Token::NEQ
                 } else {
                     Token::BANG

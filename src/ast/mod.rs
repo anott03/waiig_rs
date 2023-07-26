@@ -50,11 +50,30 @@ impl PrefixExpression {
 }
 
 #[derive(Debug, Clone)]
+pub struct InfixExpression {
+    pub token: Token,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub operator: String,
+}
+
+impl InfixExpression {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        return format!("({} {} {})", self.left.to_string(), self.operator, self.right.to_string());
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum Expression {
     Empty,
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),
     PrefixExpression(PrefixExpression),
+    InfixExpression(InfixExpression),
 }
 
 impl Expression {
@@ -64,6 +83,7 @@ impl Expression {
             Expression::Identifier(i) => i.to_string(),
             Expression::IntegerLiteral(il) => il.to_string(),
             Expression::PrefixExpression(pe) => pe.to_string(),
+            Expression::InfixExpression(ie) => ie.to_string(),
         }
     }
 }

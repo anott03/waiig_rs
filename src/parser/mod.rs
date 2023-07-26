@@ -1,12 +1,13 @@
-use crate::lexer::Lexer;
-use crate::token::{Token, get_literal};
 use crate::ast;
+use crate::lexer::Lexer;
+use crate::token::{get_literal, Token};
 
 mod tests;
 
 type PrefixParseFn = fn(&mut Parser) -> Option<ast::Expression>;
 type InfixParseFn = fn(&mut Parser, ast::Expression) -> Option<ast::Expression>;
 
+#[derive(PartialEq, PartialOrd)]
 enum Priority {
     LOWEST,
     EQUALS,
@@ -17,10 +18,20 @@ enum Priority {
     CALL,
 }
 
+fn get_priority(t: &Token) -> Priority {
+    return match t {
+        Token::EQ | Token::NEQ => Priority::EQUALS,
+        Token::LT | Token::GT => Priority::LESSGREATER,
+        Token::PLUS | Token::MINUS => Priority::SUM,
+        Token::SLASH | Token::ASTERISK => Priority::PRODUCT,
+        _ => Priority::LOWEST,
+    };
+}
+
 fn parse_identifier(p: &mut Parser) -> Option<ast::Expression> {
-    return Some(ast::Expression::Identifier(ast::Identifier{
+    return Some(ast::Expression::Identifier(ast::Identifier {
         token: p.curr_token.clone(),
-        value: get_literal(&p.curr_token)
+        value: get_literal(&p.curr_token),
     }));
 }
 
@@ -47,22 +58,49 @@ fn parse_prefix_expression(p: &mut Parser) -> Option<ast::Expression> {
     return Some(ast::Expression::PrefixExpression(expression));
 }
 
+fn parse_infix_expression(p: &mut Parser, exp: ast::Expression) -> Option<ast::Expression> {
+    let mut expression = ast::InfixExpression {
+        token: p.curr_token.clone(),
+        operator: get_literal(&p.curr_token),
+        left: Box::new(exp),
+        right: Box::new(ast::Expression::Empty),
+    };
+
+    let priority = p.curr_priority();
+    p.next_token();
+    expression.right = Box::new(p.parse_expression(priority).unwrap());
+
+    return Some(ast::Expression::InfixExpression(expression));
+}
+
 fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
     return match token {
         Token::IDENT(_) => Some(parse_identifier),
         Token::INT(_) => Some(parse_integer_literal),
         Token::BANG | Token::MINUS => Some(parse_prefix_expression),
-        _ => None
-    }
+        _ => None,
+    };
 }
 
-fn get_infix_fn(_token: Token) -> Option<InfixParseFn> { None }
+fn get_infix_fn(token: Token) -> Option<InfixParseFn> {
+    return match token {
+        Token::PLUS
+        | Token::MINUS
+        | Token::SLASH
+        | Token::ASTERISK
+        | Token::EQ
+        | Token::NEQ
+        | Token::LT
+        | Token::GT => Some(parse_infix_expression),
+        _ => None,
+    };
+}
 
 pub struct Parser<'a> {
     l: Lexer<'a>,
     pub curr_token: Token,
     pub peek_token: Token,
-    pub errors: Vec<String>
+    pub errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -92,7 +130,7 @@ impl<'a> Parser<'a> {
                     self.peek_error(t);
                     false
                 }
-            },
+            }
             Token::INT(_) => {
                 if let Token::INT(_) = self.peek_token {
                     true
@@ -100,7 +138,7 @@ impl<'a> Parser<'a> {
                     self.peek_error(t);
                     false
                 }
-            },
+            }
             _ => {
                 if self.peek_token == t {
                     true
@@ -108,7 +146,7 @@ impl<'a> Parser<'a> {
                     self.peek_error(t);
                     false
                 }
-            },
+            }
         };
     }
 
@@ -120,13 +158,13 @@ impl<'a> Parser<'a> {
                         return true;
                     }
                     return false;
-                },
+                }
                 Token::INT(_) => {
                     if let Token::INT(_) = self.curr_token {
                         return true;
                     }
                     return false;
-                },
+                }
                 _ => self.curr_token == t,
             };
         }
@@ -134,8 +172,19 @@ impl<'a> Parser<'a> {
     }
 
     fn peek_error(&mut self, t: Token) {
-        let msg = format!("expected next token to be {:?}, got {:?} instead", t, self.peek_token);
+        let msg = format!(
+            "expected next token to be {:?}, got {:?} instead",
+            t, self.peek_token
+        );
         self.errors.push(msg);
+    }
+
+    fn peek_priority(&self) -> Priority {
+        return get_priority(&self.peek_token);
+    }
+
+    fn curr_priority(&self) -> Priority {
+        return get_priority(&self.curr_token);
     }
 
     fn no_prefix_parse_fn_error(&mut self, t: Token) {
@@ -144,7 +193,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_let_statement(&mut self) -> Option<ast::Statement> {
-        let mut stmt = ast::LetStatement{
+        let mut stmt = ast::LetStatement {
             token: self.curr_token.clone(),
             name: ast::Identifier {
                 token: Token::ILLEGAL,
@@ -173,7 +222,7 @@ impl<'a> Parser<'a> {
     fn parse_return_statement(&mut self) -> Option<ast::Statement> {
         let stmt = ast::ReturnStatement {
             token: self.curr_token.clone(),
-            return_val: ast::Expression::Empty
+            return_val: ast::Expression::Empty,
         };
         // TODO: parse expression
         while !self.expect_curr(Token::SEMICOLON) {
@@ -182,9 +231,18 @@ impl<'a> Parser<'a> {
         return Some(ast::Statement::ReturnStatement(stmt));
     }
 
-    fn parse_expression(&mut self, _p: Priority) -> Option<ast::Expression> {
+    fn parse_expression(&mut self, p: Priority) -> Option<ast::Expression> {
         if let Some(prefix) = get_prefix_fn(&self.curr_token) {
-            return prefix(self);
+            let mut exp = prefix(self);
+            while self.peek_token != Token::SEMICOLON && p < self.peek_priority() {
+                if let Some(infix) = get_infix_fn(self.peek_token.clone()) {
+                    self.next_token();
+                    exp = infix(self, exp.unwrap());
+                } else {
+                    return exp;
+                }
+            }
+            return exp;
         }
         self.no_prefix_parse_fn_error(self.curr_token.clone());
         return None;
@@ -211,11 +269,11 @@ impl<'a> Parser<'a> {
             Token::LET => self.parse_let_statement(),
             Token::RETURN => self.parse_return_statement(),
             _ => self.parse_expression_statement(),
-        }
+        };
     }
 
     fn parse_program(&mut self) -> Option<ast::Program> {
-        let mut prog = ast::Program{
+        let mut prog = ast::Program {
             statements: Vec::new(),
         };
         while self.curr_token != Token::EOF {

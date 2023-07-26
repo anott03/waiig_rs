@@ -113,7 +113,7 @@ fn parse_prefix_expression() {
     use crate::lexer::Lexer;
     use crate::ast;
 
-    let input = "-5";
+    let input = "-5;";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
 
@@ -132,6 +132,47 @@ fn parse_prefix_expression() {
                 }
             } else {
                 panic!("ExpressionStatement expression is not a PrefixExpression");
+            }
+        } else {
+            panic!("statement is not an ExpressionStatement");
+        }
+    }
+}
+
+#[test]
+fn parse_infix_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "5 + 5;";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        let statement = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = statement {
+            if let ast::Expression::InfixExpression(ie) = es.expression {
+                assert_eq!("+", ie.operator);
+                let right = *ie.right;
+                let left = *ie.left;
+
+                if let ast::Expression::IntegerLiteral(l) = left {
+                    assert_eq!(5, l.value);
+                } else {
+                    panic!("left value is not 5");
+                }
+
+                if let ast::Expression::IntegerLiteral(r) = right {
+                    assert_eq!(5, r.value);
+                } else {
+                    panic!("right value is not 5");
+                }
+            } else {
+                panic!("ExpressionStatement expression is not an InfixExpression");
             }
         } else {
             panic!("statement is not an ExpressionStatement");

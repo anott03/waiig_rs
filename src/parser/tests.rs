@@ -179,3 +179,50 @@ fn parse_infix_expression() {
         }
     }
 }
+
+// TODO: test a bunch of other expressions to ensure priority works as intended
+// a + b + c
+// a + b * c
+// (a + b) * c
+// etc.
+
+#[test]
+fn parse_boolean() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "true != false;";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        let statement = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = statement {
+            if let ast::Expression::InfixExpression(ie) = es.expression {
+                assert_eq!("+", ie.operator);
+                let right = *ie.right;
+                let left = *ie.left;
+
+                if let ast::Expression::Boolean(l) = left {
+                    assert_eq!(true, l.value);
+                } else {
+                    panic!("left value is not true");
+                }
+
+                if let ast::Expression::Boolean(r) = right {
+                    assert_eq!(false, r.value);
+                } else {
+                    panic!("right value is not false");
+                }
+            } else {
+                panic!("ExpressionStatement expression is not an InfixExpression");
+            }
+        } else {
+            panic!("statement is not an ExpressionStatement");
+        }
+    }
+}

@@ -1,6 +1,22 @@
 use crate::token::{get_literal, Token};
 
 #[derive(Debug, Clone)]
+pub struct Boolean {
+    pub token: Token,
+    pub value: bool,
+}
+
+impl Boolean {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        return get_literal(&self.token);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Identifier {
     pub token: Token,
     pub value: String,
@@ -74,6 +90,7 @@ pub enum Expression {
     IntegerLiteral(IntegerLiteral),
     PrefixExpression(PrefixExpression),
     InfixExpression(InfixExpression),
+    Boolean(Boolean),
 }
 
 impl Expression {
@@ -84,6 +101,7 @@ impl Expression {
             Expression::IntegerLiteral(il) => il.to_string(),
             Expression::PrefixExpression(pe) => pe.to_string(),
             Expression::InfixExpression(ie) => ie.to_string(),
+            Expression::Boolean(b) => b.to_string(),
         }
     }
 }

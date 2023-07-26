@@ -7,7 +7,7 @@ mod tests;
 type PrefixParseFn = fn(&mut Parser) -> Option<ast::Expression>;
 type InfixParseFn = fn(&mut Parser, ast::Expression) -> Option<ast::Expression>;
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd)]
 enum Priority {
     LOWEST,
     EQUALS,
@@ -68,9 +68,17 @@ fn parse_infix_expression(p: &mut Parser, exp: ast::Expression) -> Option<ast::E
 
     let priority = p.curr_priority();
     p.next_token();
+    println!("{:?} {:?}", priority, p.curr_token.clone());
     expression.right = Box::new(p.parse_expression(priority).unwrap());
 
     return Some(ast::Expression::InfixExpression(expression));
+}
+
+fn parse_boolean(p: &mut Parser) -> Option<ast::Expression> {
+    return Some(ast::Expression::Boolean(ast::Boolean {
+        token: p.curr_token.clone(),
+        value: if p.curr_token == Token::TRUE { true } else { false },
+    }));
 }
 
 fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
@@ -78,6 +86,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
         Token::IDENT(_) => Some(parse_identifier),
         Token::INT(_) => Some(parse_integer_literal),
         Token::BANG | Token::MINUS => Some(parse_prefix_expression),
+        Token::TRUE | Token::FALSE => Some(parse_boolean),
         _ => None,
     };
 }

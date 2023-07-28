@@ -226,3 +226,29 @@ fn parse_boolean() {
         }
     }
 }
+
+#[test]
+fn parse_grouped_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "(5 + 5) - 5";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        println!("{:?}", p.errors);
+        // assert!(p.errors.len() == 0);
+        // assert!(program.statements.len() == 1);
+
+        let statement = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = statement {
+            println!("{:?}", es.expression);
+        } else {
+            panic!("statement is not an ExpressionStatement");
+        }
+    }
+
+    assert!(false);
+}

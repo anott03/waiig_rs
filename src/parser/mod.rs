@@ -28,6 +28,17 @@ fn get_priority(t: &Token) -> Priority {
     };
 }
 
+fn parse_grouped_expression(p: &mut Parser) -> Option<ast::Expression> {
+    p.next_token();
+    let exp = p.parse_expression(Priority::LOWEST);
+
+    if !p.expect_peek(Token::RPAREN) {
+        return None;
+    }
+
+    return exp;
+}
+
 fn parse_identifier(p: &mut Parser) -> Option<ast::Expression> {
     return Some(ast::Expression::Identifier(ast::Identifier {
         token: p.curr_token.clone(),
@@ -87,6 +98,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
         Token::INT(_) => Some(parse_integer_literal),
         Token::BANG | Token::MINUS => Some(parse_prefix_expression),
         Token::TRUE | Token::FALSE => Some(parse_boolean),
+        Token::LPAREN => Some(parse_grouped_expression),
         _ => None,
     };
 }
@@ -282,12 +294,10 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse_program(&mut self) -> Option<ast::Program> {
-        println!("parse program");
         let mut prog = ast::Program {
             statements: Vec::new(),
         };
         while self.curr_token != Token::EOF {
-            println!("while loop");
             if let Some(statement) = self.parse_statement() {
                 prog.statements.push(statement);
             }

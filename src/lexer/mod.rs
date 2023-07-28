@@ -35,7 +35,7 @@ impl<'a> Lexer<'a> {
 
     fn read_identifier(&mut self) -> String {
         let position = self.position;
-        while self.ch.is_alphabetic() || self.ch == '_' {
+        while self.ch.is_alphanumeric() || self.ch == '_' {
             self.read_char();
         }
         let mut s = String::new();
@@ -84,10 +84,9 @@ impl<'a> Lexer<'a> {
             '/' => Token::SLASH,
             '<' => Token::LT,
             '>' => Token::GT,
-
             '=' => {
                 if self.peek_char() == '=' {
-                    self.next_token();
+                    self.read_char();
                     Token::EQ
                 } else {
                     Token::ASSIGN
@@ -95,7 +94,7 @@ impl<'a> Lexer<'a> {
             },
             '!' => {
                 if self.peek_char() == '=' {
-                    self.next_token();
+                    self.read_char();
                     Token::NEQ
                 } else {
                     Token::BANG
@@ -106,8 +105,7 @@ impl<'a> Lexer<'a> {
                 if self.ch.is_alphabetic() || self.ch == '_' {
                     let literal= self.read_identifier();
                     token::lookup_ident(literal)
-                } 
-                else if self.ch.is_digit(10) {
+                } else if self.ch.is_digit(10) {
                     // intentionally omit self.read_char() as it is taken care
                     // of in read_number
                     return Token::INT(self.read_number());

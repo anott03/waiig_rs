@@ -281,11 +281,13 @@ impl<'a> Parser<'a> {
         };
     }
 
-    fn parse_program(&mut self) -> Option<ast::Program> {
+    pub fn parse_program(&mut self) -> Option<ast::Program> {
+        println!("parse program");
         let mut prog = ast::Program {
             statements: Vec::new(),
         };
         while self.curr_token != Token::EOF {
+            println!("while loop");
             if let Some(statement) = self.parse_statement() {
                 prog.statements.push(statement);
             }

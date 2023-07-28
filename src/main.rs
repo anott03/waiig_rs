@@ -5,6 +5,11 @@ mod lexer;
 mod parser;
 mod ast;
 
+use crate::parser::Parser;
+use crate::lexer::Lexer;
+
 fn main() {
-    println!("Hello, world!");
+    let input = "true !=";
+    let l = Lexer::new(input);
+    let _p = Parser::new(l);
 }

@@ -203,7 +203,7 @@ fn parse_boolean() {
         let statement = program.statements[0].clone();
         if let ast::Statement::ExpressionStatement(es) = statement {
             if let ast::Expression::InfixExpression(ie) = es.expression {
-                assert_eq!("+", ie.operator);
+                assert_eq!("!=", ie.operator);
                 let right = *ie.right;
                 let left = *ie.left;
 

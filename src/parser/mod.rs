@@ -31,10 +31,10 @@ fn get_priority(t: &Token) -> Priority {
 fn parse_grouped_expression(p: &mut Parser) -> Option<ast::Expression> {
     p.next_token();
     let exp = p.parse_expression(Priority::LOWEST);
-
     if !p.expect_peek(Token::RPAREN) {
         return None;
     }
+    p.next_token();
 
     return exp;
 }

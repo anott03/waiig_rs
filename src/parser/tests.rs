@@ -239,8 +239,6 @@ fn parse_grouped_expression() {
 
     if let Some(program) = p.parse_program() {
         println!("{:?}", p.errors);
-        // assert!(p.errors.len() == 0);
-        // assert!(program.statements.len() == 1);
 
         let statement = program.statements[0].clone();
         if let ast::Statement::ExpressionStatement(es) = statement {

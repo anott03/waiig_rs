@@ -62,17 +62,24 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
     }
 
     p.next_token();
-    let tok = p.parse_expression(Priority::LOWEST);
-    // p.next_token();
-    // println!("64: {:?}", p.curr_token);
-    exp.condition = Box::new(tok.unwrap());
+    p.next_token();
+    let cond = p.parse_expression(Priority::LOWEST);
+    exp.condition = Box::new(cond.unwrap());
 
-    if !p.expect_peek(Token::RPAREN) {
-        return None;
-    }
+    // TODO for some reason the token is getting advanced somewhere it shouldn't be
+    // ... or something. the book's peek_token advances the token and mine does
+    // not and I think there are now several inconsistencies re. where the token
+    // gets advanced
+    // if !p.expect_peek(Token::RPAREN) {
+    //     return None;
+    // }
+    // p.next_token();
+
     if !p.expect_peek(Token::LSQUIRLY) {
         return None;
     }
+    p.next_token();
+
     if let Some(bs) = parse_block_statement(p) {
         exp.consequence = bs;
     }
@@ -87,6 +94,8 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
             exp.alternative = Some(bs);
         }
     }
+
+    println!("BLOCK EXPRESSION {:?}", exp);
 
     return Some(ast::Expression::IfExpression(exp));
 }

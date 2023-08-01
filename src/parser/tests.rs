@@ -260,7 +260,25 @@ fn parse_if_expression() {
     let mut p = Parser::new(l);
 
     if let Some(program) = p.parse_program() {
-        assert!(p.errors.len() == 1);
+        println!("{:?}", p.errors);
+        assert!(p.errors.len() == 0);
+    }
+    assert!(false);
+}
+
+#[test]
+fn parse_if_else_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "if (x < y) { x } else { y }";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        println!("{:?}", p.errors);
+        assert!(p.errors.len() == 0);
     }
     assert!(false);
 }

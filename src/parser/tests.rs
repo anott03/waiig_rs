@@ -263,7 +263,6 @@ fn parse_if_expression() {
         println!("{:?}", p.errors);
         assert!(p.errors.len() == 0);
     }
-    assert!(false);
 }
 
 #[test]
@@ -280,5 +279,4 @@ fn parse_if_else_expression() {
         println!("{:?}", p.errors);
         assert!(p.errors.len() == 0);
     }
-    assert!(false);
 }

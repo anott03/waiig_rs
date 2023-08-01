@@ -46,7 +46,6 @@ fn parse_block_statement(p: &mut Parser) -> Option<ast::BlockStatement> {
 }
 
 fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
-    // println!("parse if");
     let mut exp = ast::IfExpression {
         token: p.curr_token.clone(),
         condition: Box::new(ast::Expression::Empty),
@@ -96,17 +95,12 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
         }
     }
 
-    println!("BLOCK EXPRESSION {:?}", exp);
-
     return Some(ast::Expression::IfExpression(exp));
 }
 
 fn parse_grouped_expression(p: &mut Parser) -> Option<ast::Expression> {
-    println!("grouped");
     p.next_token();
     let exp = p.parse_expression(Priority::LOWEST);
-    println!("exp: {:?}", exp);
-    println!("tok: {:?}", p.curr_token);
     if !p.expect_peek(Token::RPAREN) {
         return None;
     }

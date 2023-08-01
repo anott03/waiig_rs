@@ -242,7 +242,21 @@ fn parse_grouped_expression() {
 
         let statement = program.statements[0].clone();
         if let ast::Statement::ExpressionStatement(es) = statement {
-            println!("{:?}", es.expression);
+            if let ast::Expression::InfixExpression(ie) = es.expression {
+                if let ast::Expression::InfixExpression(ie2) = *ie.left {
+                    if let ast::Expression::IntegerLiteral(l) = *ie2.left {
+                        assert_eq!(5, l.value);
+                    }
+                    if let ast::Expression::IntegerLiteral(r) = *ie2.right {
+                        assert_eq!(5, r.value);
+                    }
+                    assert_eq!("+", ie2.operator);
+                }
+                if let ast::Expression::IntegerLiteral(r) = *ie.right {
+                    assert_eq!(5, r.value);
+                }
+                assert_eq!("-", ie.operator);
+            }
         } else {
             panic!("statement is not an ExpressionStatement");
         }
@@ -254,29 +268,50 @@ fn parse_if_expression() {
     use crate::parser::Parser;
     use crate::lexer::Lexer;
     use crate::ast;
-
-    let input = "if (x < y) { x }";
-    let l = Lexer::new(input);
-    let mut p = Parser::new(l);
-
-    if let Some(program) = p.parse_program() {
-        println!("{:?}", p.errors);
-        assert!(p.errors.len() == 0);
-    }
-}
-
-#[test]
-fn parse_if_else_expression() {
-    use crate::parser::Parser;
-    use crate::lexer::Lexer;
-    use crate::ast;
+    use crate::token::Token;
 
     let input = "if (x < y) { x } else { y }";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
 
     if let Some(program) = p.parse_program() {
-        println!("{:?}", p.errors);
         assert!(p.errors.len() == 0);
+
+        if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
+            if let ast::Expression::IfExpression(ie) = es.expression {
+                if let ast::Expression::InfixExpression(infe) = *ie.condition {
+                    if let ast::Expression::Identifier(l) = *infe.left {
+                        assert_eq!(Token::IDENT(String::from("x")), l.token);
+                    }
+                    if let ast::Expression::Identifier(r) = *infe.right {
+                        assert_eq!(Token::IDENT(String::from("y")), r.token);
+                    }
+                } else {
+                    panic!("not an InfixExpression");
+                }
+
+                assert_eq!(1, ie.consequence.statements.len());
+                if let ast::Statement::ExpressionStatement(ses) = ie.consequence.statements[0].clone() {
+                    if let ast::Expression::Identifier(i) = ses.expression  {
+                        assert_eq!(Token::IDENT(String::from("x")), i.token);
+                    }
+                } else {
+                    panic!("not an ExpressionStatement");
+                }
+
+                if let Some(bs) = ie.alternative {
+                    assert_eq!(1, bs.statements.len());
+                    if let ast::Statement::ExpressionStatement(ses) = bs.statements[0].clone() {
+                        if let ast::Expression::Identifier(i) = ses.expression {
+                            assert_eq!(Token::IDENT(String::from("y")), i.token);
+                        }
+                    }
+                } else {
+                    panic!("no alternative");
+                }
+            } else {
+                panic!("not an IfExpression");
+            }
+        }
     }
 }

@@ -247,6 +247,20 @@ fn parse_grouped_expression() {
             panic!("statement is not an ExpressionStatement");
         }
     }
+}
 
+#[test]
+fn parse_if_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "if (x < y) { x }";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 1);
+    }
     assert!(false);
 }

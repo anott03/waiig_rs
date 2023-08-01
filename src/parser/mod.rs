@@ -46,6 +46,7 @@ fn parse_block_statement(p: &mut Parser) -> Option<ast::BlockStatement> {
 }
 
 fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
+    // println!("parse if");
     let mut exp = ast::IfExpression {
         token: p.curr_token.clone(),
         condition: Box::new(ast::Expression::Empty),
@@ -62,6 +63,8 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
 
     p.next_token();
     let tok = p.parse_expression(Priority::LOWEST);
+    // p.next_token();
+    // println!("64: {:?}", p.curr_token);
     exp.condition = Box::new(tok.unwrap());
 
     if !p.expect_peek(Token::RPAREN) {
@@ -70,7 +73,6 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
     if !p.expect_peek(Token::LSQUIRLY) {
         return None;
     }
-
     if let Some(bs) = parse_block_statement(p) {
         exp.consequence = bs;
     }
@@ -90,8 +92,11 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
 }
 
 fn parse_grouped_expression(p: &mut Parser) -> Option<ast::Expression> {
+    println!("grouped");
     p.next_token();
     let exp = p.parse_expression(Priority::LOWEST);
+    println!("exp: {:?}", exp);
+    println!("tok: {:?}", p.curr_token);
     if !p.expect_peek(Token::RPAREN) {
         return None;
     }
@@ -141,7 +146,6 @@ fn parse_infix_expression(p: &mut Parser, exp: ast::Expression) -> Option<ast::E
     let priority = p.curr_priority();
     p.next_token();
     expression.right = Box::new(p.parse_expression(priority).unwrap());
-
     return Some(ast::Expression::InfixExpression(expression));
 }
 

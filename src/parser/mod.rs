@@ -1,4 +1,4 @@
-use crate::ast;
+use crate::ast::{self, BlockStatement};
 use crate::lexer::Lexer;
 use crate::token::{get_literal, Token};
 
@@ -26,6 +26,67 @@ fn get_priority(t: &Token) -> Priority {
         Token::SLASH | Token::ASTERISK => Priority::PRODUCT,
         _ => Priority::LOWEST,
     };
+}
+
+fn parse_block_statement(p: &mut Parser) -> Option<ast::BlockStatement> {
+    let mut block = ast::BlockStatement {
+        token: p.curr_token.clone(),
+        statements: Vec::new(),
+    };
+
+    p.next_token();
+    while !p.expect_curr(Token::RSQUIRLY) && !p.expect_curr(Token::EOF) {
+        if let Some(stmt) = p.parse_statement() {
+            block.statements.push(stmt);
+        }
+        p.next_token();
+    }
+
+    return Some(block);
+}
+
+fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
+    let mut exp = ast::IfExpression {
+        token: p.curr_token.clone(),
+        condition: Box::new(ast::Expression::Empty),
+        consequence: BlockStatement {
+            token: Token::EOF,
+            statements: Vec::new(),
+        },
+        alternative: None,
+    };
+
+    if !p.expect_peek(Token::LPAREN) {
+        return None;
+    }
+
+    p.next_token();
+    let tok = p.parse_expression(Priority::LOWEST);
+    exp.condition = Box::new(tok.unwrap());
+
+    if !p.expect_peek(Token::RPAREN) {
+        return None;
+    }
+    if !p.expect_peek(Token::LSQUIRLY) {
+        return None;
+    }
+
+    if let Some(bs) = parse_block_statement(p) {
+        exp.consequence = bs;
+    }
+
+    if p.peek_token == Token::ELSE {
+        p.next_token();
+        if !p.expect_peek(Token::LSQUIRLY) {
+            return None;
+        }
+
+        if let Some(bs) = parse_block_statement(p) {
+            exp.alternative = Some(bs);
+        }
+    }
+
+    return Some(ast::Expression::IfExpression(exp));
 }
 
 fn parse_grouped_expression(p: &mut Parser) -> Option<ast::Expression> {
@@ -79,7 +140,6 @@ fn parse_infix_expression(p: &mut Parser, exp: ast::Expression) -> Option<ast::E
 
     let priority = p.curr_priority();
     p.next_token();
-    println!("{:?} {:?}", priority, p.curr_token.clone());
     expression.right = Box::new(p.parse_expression(priority).unwrap());
 
     return Some(ast::Expression::InfixExpression(expression));
@@ -99,6 +159,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
         Token::BANG | Token::MINUS => Some(parse_prefix_expression),
         Token::TRUE | Token::FALSE => Some(parse_boolean),
         Token::LPAREN => Some(parse_grouped_expression),
+        Token::IF => Some(parse_if_statement),
         _ => None,
     };
 }

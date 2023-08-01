@@ -1,6 +1,47 @@
 use crate::token::{get_literal, Token};
 
 #[derive(Debug, Clone)]
+pub struct BlockStatement {
+    pub token: Token,
+    pub statements: Vec<Statement>,
+}
+
+impl BlockStatement {
+    fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    fn to_string(&self) -> String {
+        let mut out = String::new();
+        self.statements.iter().for_each(|s| {
+            out += &s.to_string();
+        });
+        return out;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct IfExpression {
+    pub token: Token,
+    pub condition: Box<Expression>,
+    pub consequence: BlockStatement,
+    pub alternative: Option<BlockStatement>,
+}
+
+impl IfExpression {
+    fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    fn to_string(&self) -> String {
+        return match &self.alternative {
+            Some(alt) => format!("if {:?} {:?} else {:?}", self.condition.to_string(), self.consequence.to_string(), &alt.to_string()),
+            None => format!("if {:?} {:?}", self.condition.to_string(), self.consequence.to_string()),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Boolean {
     pub token: Token,
     pub value: bool,
@@ -91,6 +132,8 @@ pub enum Expression {
     PrefixExpression(PrefixExpression),
     InfixExpression(InfixExpression),
     Boolean(Boolean),
+    IfExpression(IfExpression), 
+    BlockStatement(BlockStatement),
 }
 
 impl Expression {
@@ -102,6 +145,8 @@ impl Expression {
             Expression::PrefixExpression(pe) => pe.to_string(),
             Expression::InfixExpression(ie) => ie.to_string(),
             Expression::Boolean(b) => b.to_string(),
+            Expression::IfExpression(ie) => ie.to_string(),
+            Expression::BlockStatement(bs) => bs.to_string(),
         }
     }
 }

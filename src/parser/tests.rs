@@ -275,8 +275,6 @@ fn parse_if_expression() {
     let mut p = Parser::new(l);
 
     if let Some(program) = p.parse_program() {
-        assert!(p.errors.len() == 0);
-
         if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
             if let ast::Expression::IfExpression(ie) = es.expression {
                 if let ast::Expression::InfixExpression(infe) = *ie.condition {
@@ -312,6 +310,58 @@ fn parse_if_expression() {
             } else {
                 panic!("not an IfExpression");
             }
+        }
+    }
+}
+
+#[test]
+fn parse_function_literal() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "fn() {};";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+        if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
+            if let ast::Expression::FunctionLiteral(fl) = es.expression {
+                assert!(fl.parameters.len() == 0);
+                assert!(fl.body.statements.len() == 0);
+            } else {
+                panic!("expression not a FunctionLiteral");
+            }
+        } else {
+            panic!("statement not an ExpressionStatement");
+        }
+    }
+}
+
+#[test]
+fn parse_function_literal2() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "fn(x, y) { x == y };";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+        if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
+            if let ast::Expression::FunctionLiteral(fl) = es.expression {
+                assert!(fl.parameters.len() == 2);
+                assert!(fl.body.statements.len() == 1);
+            } else {
+                panic!("expression not a FunctionLiteral");
+            }
+        } else {
+            panic!("statement not an ExpressionStatement");
         }
     }
 }

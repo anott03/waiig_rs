@@ -104,7 +104,7 @@ impl<'a> Lexer<'a> {
             _ => {
                 if self.ch.is_alphabetic() || self.ch == '_' {
                     let literal= self.read_identifier();
-                    token::lookup_ident(literal)
+                    return token::lookup_ident(literal);
                 } else if self.ch.is_digit(10) {
                     // intentionally omit self.read_char() as it is taken care
                     // of in read_number

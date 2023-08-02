@@ -51,6 +51,11 @@ fn parse_function_parameters(p: &mut Parser) -> Option<Vec<ast::Identifier>> {
         return None;
     }
     let mut idents: Vec<ast::Identifier> = Vec::new();
+    let first_ident = ast::Identifier {
+        token: p.curr_token.clone(),
+        value: get_literal(&p.curr_token),
+    };
+    idents.push(first_ident);
     while p.peek_token == Token::COMMA || idents.len() == 0 {
         p.next_token();
         p.next_token();
@@ -127,10 +132,10 @@ fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
     // be ... or something. the book's peek_token advances the token and mine
     // does not and I think there are now several inconsistencies re. where the
     // token gets advanced
-    // if !p.expect_peek(Token::RPAREN) {
-    //     return None;
-    // }
-    // p.next_token();
+    if !p.expect_peek(Token::RPAREN) {
+        return None;
+    }
+    p.next_token();
 
     if !p.expect_peek(Token::LSQUIRLY) {
         return None;
@@ -226,6 +231,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
         Token::TRUE | Token::FALSE => Some(parse_boolean),
         Token::LPAREN => Some(parse_grouped_expression),
         Token::IF => Some(parse_if_statement),
+        Token::FUNCTION => Some(parse_function_literal),
         _ => None,
     };
 }

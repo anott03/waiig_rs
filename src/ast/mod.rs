@@ -1,6 +1,28 @@
 use crate::token::{get_literal, Token};
 
 #[derive(Debug, Clone)]
+pub struct FunctionLiteral {
+    pub token: Token,
+    pub parameters: Vec<Identifier>,
+    pub body: BlockStatement,
+}
+
+impl FunctionLiteral {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut params = String::new();
+        self.parameters.iter().for_each(|p| {
+            params += format!("{}, ", p.to_string()).as_str();
+        });
+
+        return format!("{} ({}) {}", self.token_literal(), params, self.body.to_string());
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct BlockStatement {
     pub token: Token,
     pub statements: Vec<Statement>,
@@ -133,7 +155,7 @@ pub enum Expression {
     InfixExpression(InfixExpression),
     Boolean(Boolean),
     IfExpression(IfExpression), 
-    BlockStatement(BlockStatement),
+    FunctionLiteral(FunctionLiteral),
 }
 
 impl Expression {
@@ -146,7 +168,7 @@ impl Expression {
             Expression::InfixExpression(ie) => ie.to_string(),
             Expression::Boolean(b) => b.to_string(),
             Expression::IfExpression(ie) => ie.to_string(),
-            Expression::BlockStatement(bs) => bs.to_string(),
+            Expression::FunctionLiteral(fl) => fl.to_string(),
         }
     }
 }

@@ -45,6 +45,64 @@ fn parse_block_statement(p: &mut Parser) -> Option<ast::BlockStatement> {
     return Some(block);
 }
 
+fn parse_function_parameters(p: &mut Parser) -> Option<Vec<ast::Identifier>> {
+    p.next_token();
+    if p.curr_token == Token::RPAREN {
+        return None;
+    }
+    let mut idents: Vec<ast::Identifier> = Vec::new();
+    while p.peek_token == Token::COMMA || idents.len() == 0 {
+        p.next_token();
+        p.next_token();
+        let ident = ast::Identifier {
+            token: p.curr_token.clone(),
+            value: get_literal(&p.curr_token),
+        };
+        idents.push(ident);
+    }
+
+    if !p.expect_peek(Token::RPAREN) {
+        return None;
+    }
+    p.next_token();
+
+    return Some(idents);
+}
+
+fn parse_function_literal(p: &mut Parser) -> Option<ast::Expression> {
+    let mut lit = ast::FunctionLiteral{
+        token: p.curr_token.clone(),
+        parameters: Vec::new(),
+        body: BlockStatement {
+            token: Token::EOF,
+            statements: Vec::new()
+        }
+    };
+
+    if !p.expect_peek(Token::LPAREN) {
+        return None;
+    }
+    p.next_token();
+
+    if let Some(params) = parse_function_parameters(p) {
+        lit.parameters = params;
+    }
+
+    if !p.expect_peek(Token::LSQUIRLY) {
+        return None;
+    }
+    p.next_token();
+
+    if let Some(bs) = parse_block_statement(p) {
+        lit.body = bs;
+    } else {
+        p.errors.push("Error parsing function body".to_string());
+        return None;
+    }
+
+    return Some(ast::Expression::FunctionLiteral(lit));
+}
+
 fn parse_if_statement(p: &mut Parser) -> Option<ast::Expression> {
     let mut exp = ast::IfExpression {
         token: p.curr_token.clone(),

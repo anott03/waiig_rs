@@ -1,6 +1,27 @@
 use crate::token::{get_literal, Token};
 
 #[derive(Debug, Clone)]
+pub struct CallExpression {
+    pub token: Token,
+    pub function: Box<Expression>,
+    pub arguments: Vec<Box<Expression>>,
+}
+
+impl CallExpression {
+    pub fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut params = String::new();
+        self.arguments.iter().for_each(|p| {
+            params += format!("{}, ", p.to_string()).as_str();
+        });
+        return format!("{}({})", self.function.to_string(), params);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct FunctionLiteral {
     pub token: Token,
     pub parameters: Vec<Identifier>,
@@ -156,6 +177,7 @@ pub enum Expression {
     Boolean(Boolean),
     IfExpression(IfExpression), 
     FunctionLiteral(FunctionLiteral),
+    CallExpression(CallExpression),
 }
 
 impl Expression {
@@ -169,6 +191,7 @@ impl Expression {
             Expression::Boolean(b) => b.to_string(),
             Expression::IfExpression(ie) => ie.to_string(),
             Expression::FunctionLiteral(fl) => fl.to_string(),
+            Expression::CallExpression(ce) => ce.to_string(),
         }
     }
 }

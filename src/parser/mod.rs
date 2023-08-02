@@ -28,6 +28,39 @@ fn get_priority(t: &Token) -> Priority {
     };
 }
 
+fn parse_call_arguments(p: &mut Parser) -> Option<Vec<ast::Expression>> {
+    let mut args: Vec<ast::Expression> = Vec::new();
+    p.next_token();
+    if p.curr_token == Token::RPAREN {
+        return None;
+    }
+
+    args.push(p.parse_expression(Priority::LOWEST).unwrap());
+    while p.peek_token == Token::COMMA {
+        p.next_token();
+        p.next_token();
+        args.push(p.parse_expression(Priority::LOWEST).unwrap());
+    }
+
+    if !p.expect_peek(Token::RPAREN) {
+        p.next_token();
+        return None;
+    }
+    p.next_token();
+
+    return Some(args);
+}
+
+fn parse_call_expression(p: &mut Parser, function: ast::Expression) -> Option<ast::Expression> {
+    let exp = ast::CallExpression {
+        token: p.curr_token.clone(),
+        function: Box::new(function),
+        arguments: Vec::new(),
+    };
+
+    return Some(ast::Expression::CallExpression(exp));
+}
+
 fn parse_block_statement(p: &mut Parser) -> Option<ast::BlockStatement> {
     let mut block = ast::BlockStatement {
         token: p.curr_token.clone(),

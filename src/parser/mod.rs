@@ -24,22 +24,23 @@ fn get_priority(t: &Token) -> Priority {
         Token::LT | Token::GT => Priority::LESSGREATER,
         Token::PLUS | Token::MINUS => Priority::SUM,
         Token::SLASH | Token::ASTERISK => Priority::PRODUCT,
+        Token::LPAREN => Priority::CALL,
         _ => Priority::LOWEST,
     };
 }
 
-fn parse_call_arguments(p: &mut Parser) -> Option<Vec<ast::Expression>> {
-    let mut args: Vec<ast::Expression> = Vec::new();
+fn parse_call_arguments(p: &mut Parser) -> Option<Vec<Box<ast::Expression>>> {
+    let mut args: Vec<Box<ast::Expression>> = Vec::new();
     p.next_token();
     if p.curr_token == Token::RPAREN {
         return None;
     }
 
-    args.push(p.parse_expression(Priority::LOWEST).unwrap());
+    args.push(Box::new(p.parse_expression(Priority::LOWEST).unwrap()));
     while p.peek_token == Token::COMMA {
         p.next_token();
         p.next_token();
-        args.push(p.parse_expression(Priority::LOWEST).unwrap());
+        args.push(Box::new(p.parse_expression(Priority::LOWEST).unwrap()));
     }
 
     if !p.expect_peek(Token::RPAREN) {
@@ -52,12 +53,14 @@ fn parse_call_arguments(p: &mut Parser) -> Option<Vec<ast::Expression>> {
 }
 
 fn parse_call_expression(p: &mut Parser, function: ast::Expression) -> Option<ast::Expression> {
-    let exp = ast::CallExpression {
+    let mut exp = ast::CallExpression {
         token: p.curr_token.clone(),
         function: Box::new(function),
         arguments: Vec::new(),
     };
-
+    if let Some(args) = parse_call_arguments(p) {
+        exp.arguments = args;
+    }
     return Some(ast::Expression::CallExpression(exp));
 }
 
@@ -279,6 +282,7 @@ fn get_infix_fn(token: Token) -> Option<InfixParseFn> {
         | Token::NEQ
         | Token::LT
         | Token::GT => Some(parse_infix_expression),
+        Token::LPAREN => Some(parse_call_expression),
         _ => None,
     };
 }

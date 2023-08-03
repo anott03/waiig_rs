@@ -365,3 +365,26 @@ fn parse_function_literal2() {
         }
     }
 }
+
+#[test]
+fn parse_call_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "my_function(2 + 3, 17)";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
+            if let ast::Expression::CallExpression(ce) = es.expression {
+                assert_eq!("my_function", ce.function.to_string());
+                assert_eq!(2, ce.arguments.len());
+            }
+        }
+    }
+}

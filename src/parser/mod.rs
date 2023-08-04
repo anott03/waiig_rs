@@ -402,8 +402,10 @@ impl<'a> Parser<'a> {
         if !self.expect_peek(Token::ASSIGN) {
             return None;
         }
-
-        while !self.expect_curr(Token::SEMICOLON) {
+        self.next_token();
+        self.next_token();
+        stmt.value = self.parse_expression(Priority::LOWEST);
+        if self.peek_token == Token::SEMICOLON {
             self.next_token();
         }
 
@@ -411,12 +413,15 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_return_statement(&mut self) -> Option<ast::Statement> {
-        let stmt = ast::ReturnStatement {
+        let mut stmt = ast::ReturnStatement {
             token: self.curr_token.clone(),
             return_val: ast::Expression::Empty,
         };
-        // TODO: parse expression
-        while !self.expect_curr(Token::SEMICOLON) {
+        self.next_token();
+        if let Some(exp) = self.parse_expression(Priority::LOWEST) {
+            stmt.return_val = exp;
+        }
+        if self.peek_token == Token::SEMICOLON {
             self.next_token();
         }
         return Some(ast::Statement::ReturnStatement(stmt));

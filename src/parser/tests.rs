@@ -4,6 +4,7 @@
 fn parse_let_statement() {
     use crate::parser::Parser;
     use crate::lexer::Lexer;
+    use crate::ast;
 
     let input = "let x = 5;";
     let l = Lexer::new(input);
@@ -17,6 +18,15 @@ fn parse_let_statement() {
         }
         println!("{:?}", prog.statements);
         assert!(prog.statements.len() == 1);
+        if let ast::Statement::LetStatement(ls) = prog.statements[0].clone() {
+            if let Some(ast::Expression::IntegerLiteral(il)) = ls.value {
+                assert_eq!(5, il.value);
+            } else {
+                panic!("value is not an IntegerLiteral");
+            }
+        } else {
+            panic!("statement is not a LetStatement");
+        }
     }
 }
 
@@ -40,19 +50,49 @@ fn peek_error() {
 }
 
 #[test]
-fn return_statement() {
+fn parse_return_statement() {
     use crate::parser::Parser;
     use crate::lexer::Lexer;
+    use crate::ast;
 
     let input = "return 5;
-    return 10;
+    return 17 * 3;
     return 993322;
     ";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     if let Some(prog) = p.parse_program() {
-        assert!(p.errors.len() == 0);
+        if p.errors.len() != 0 {
+            p.errors.iter().for_each(|e| {
+                println!("{}", e);
+            });
+            panic!("there were errors");
+        }
         assert!(prog.statements.len() == 3);
+
+        if let ast::Statement::ReturnStatement(rs) = prog.statements[0].clone() {
+            if let ast::Expression::IntegerLiteral(is) = rs.return_val {
+                assert_eq!(5, is.value);
+            }
+        }
+
+        if let ast::Statement::ReturnStatement(rs) = prog.statements[1].clone() {
+            if let ast::Expression::InfixExpression(ie) = rs.return_val {
+                assert_eq!("*", ie.operator);
+                if let ast::Expression::IntegerLiteral(l) = *ie.left {
+                    assert_eq!(17, l.value);
+                }
+                if let ast::Expression::IntegerLiteral(r) = *ie.right {
+                    assert_eq!(3, r.value);
+                }
+            }
+        }
+
+        if let ast::Statement::ReturnStatement(rs) = prog.statements[2].clone() {
+            if let ast::Expression::IntegerLiteral(is) = rs.return_val {
+                assert_eq!(993322, is.value);
+            }
+        }
     }
 }
 

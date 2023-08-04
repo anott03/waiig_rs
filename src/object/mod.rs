@@ -1,6 +1,6 @@
 #[derive(Debug, Clone)]
 pub struct Integer {
-    value: i32,
+    pub value: i32,
 }
 
 impl Integer {
@@ -11,7 +11,7 @@ impl Integer {
 
 #[derive(Debug, Clone)]
 pub struct Boolean {
-    value: bool,
+    pub value: bool,
 }
 
 impl Boolean {

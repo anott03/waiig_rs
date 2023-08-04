@@ -253,7 +253,7 @@ fn parse_infix_expression(p: &mut Parser, exp: ast::Expression) -> Option<ast::E
 }
 
 fn parse_boolean(p: &mut Parser) -> Option<ast::Expression> {
-    return Some(ast::Expression::Boolean(ast::Boolean {
+    return Some(ast::Expression::Boolean(ast::BooleanLiteral {
         token: p.curr_token.clone(),
         value: if p.curr_token == Token::TRUE { true } else { false },
     }));

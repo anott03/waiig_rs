@@ -1,5 +1,7 @@
 #[cfg(test)]
 
+use crate::ast::Inspect;
+
 #[test]
 fn parse_let_statement() {
     use crate::parser::Parser;

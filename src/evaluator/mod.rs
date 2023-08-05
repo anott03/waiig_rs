@@ -48,6 +48,47 @@ fn eval_prefix_expression(op: String, right: Object) -> Object {
     };
 }
 
+fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object {
+    return match op.as_str() {
+        "+" => Object::Integer(Integer{ value: left + right }),
+        "-" => Object::Integer(Integer{ value: left - right }),
+        "*" => Object::Integer(Integer{ value: left * right }),
+        "/" => Object::Integer(Integer{ value: left / right }),
+        "<" => Object::Boolean(Boolean{ value: left < right }),
+        ">" => Object::Boolean(Boolean{ value: left > right }),
+        "==" => Object::Boolean(Boolean{ value: left == right }),
+        "!=" => Object::Boolean(Boolean{ value: left != right }),
+        _ => Object::Null,
+    };
+}
+
+fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object {
+    return match op.as_str() {
+        "==" => Object::Boolean(Boolean { value: left == right }),
+        "!=" => Object::Boolean(Boolean { value: left != right }),
+        _ => Object::Null,
+    };
+}
+
+fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
+    return match op.as_str() {
+        "==" => Object::Boolean(Boolean{ value: left == right }),
+        "!=" => Object::Boolean(Boolean{ value: left != right }),
+        "<" => Object::Boolean(Boolean{ value: left < right }),
+        ">" => Object::Boolean(Boolean{ value: left > right }),
+        _ => match left {
+            Object::Integer(l) => {
+                if let Object::Integer(r) = right {
+                    eval_infix_int_expression(op, l.value, r.value)
+                } else {
+                    Object::Null
+                }
+            },
+            _ => Object::Null,
+        }
+    };
+}
+
 fn eval_expression(e: Expression) -> Object {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(Integer {
@@ -59,6 +100,11 @@ fn eval_expression(e: Expression) -> Object {
         Expression::PrefixExpression(pe) => {
             let right = eval_expression(*pe.right);
             eval_prefix_expression(pe.operator, right)
+        },
+        Expression::InfixExpression(ie) => {
+            let left = eval_expression(*ie.left);
+            let right = eval_expression(*ie.right);
+            eval_infix_expression(ie.operator, left, right)
         }
         _ => Object::Null,
     };

@@ -79,3 +79,62 @@ fn eval_minus_expression() {
         panic!("obj is not an Integer");
     }
 }
+
+#[test]
+fn eval_infix_int_expression() {
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::Object;
+    use crate::evaluator::eval;
+
+    let tests = vec![
+        (String::from("3 * 6"), 18),
+        (String::from("6 / 3"), 2),
+        (String::from("9 + 9"), 18),
+        (String::from("9 - 9"), 0),
+    ];
+
+    tests.iter().for_each(|(i, o)| {
+        let mut p = Parser::new(Lexer::new(i.as_str()));
+        let program = p.parse_program().unwrap();
+        let obj = eval(crate::ast::Node::Program(program));
+        println!("{:?}", obj);
+        if let Object::Integer(i) = obj {
+            assert_eq!(*o, i.value);
+        } else {
+            panic!("obj is not an Integer");
+        }
+    });
+}
+
+#[test]
+fn eval_infix_bool_expression() {
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::Object;
+    use crate::evaluator::eval;
+
+    let tests = vec![
+        (String::from("1 == 1"), true),
+        (String::from("6 < 3"), false),
+        (String::from("4 != 9"), true),
+        (String::from("9 > 9"), false),
+        (String::from("true == true"), true),
+        (String::from("true != true"), false),
+        (String::from("false == true"), false),
+        (String::from("false != true"), true),
+        (String::from("false < 17"), false),
+    ];
+
+    tests.iter().for_each(|(i, o)| {
+        let mut p = Parser::new(Lexer::new(i.as_str()));
+        let program = p.parse_program().unwrap();
+        let obj = eval(crate::ast::Node::Program(program));
+        println!("{} {:?}", i, obj);
+        if let Object::Boolean(i) = obj {
+            assert_eq!(*o, i.value);
+        } else {
+            panic!("obj is not an Boolean");
+        }
+    });
+}

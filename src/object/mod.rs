@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Integer {
     pub value: i32,
 }
@@ -9,7 +9,7 @@ impl Integer {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Boolean {
     pub value: bool,
 }
@@ -20,7 +20,7 @@ impl Boolean {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Object {
     Integer(Integer),
     Boolean(Boolean),

@@ -3,12 +3,8 @@ mod tests;
 use crate::object::*;
 use crate::ast::*;
 
-const TRUE: Object = Object::Boolean(Boolean {
-    value: true
-});
-const FALSE: Object = Object::Boolean(Boolean {
-    value: false
-});
+const TRUE: Object = Object::Boolean(true);
+const FALSE: Object = Object::Boolean(false);
 
 fn eval_program(p: Program) -> Object {
     let mut result: Object = Object::Null;
@@ -27,7 +23,7 @@ fn eval_statement(s: Statement) -> Object {
 
 fn eval_bang(right: Object) -> Object {
     return match right {
-        Object::Boolean(b) => if b.value == true { FALSE } else { TRUE },
+        Object::Boolean(b) => if b == true { FALSE } else { TRUE },
         Object::Null => TRUE,
         _ => FALSE,
     };
@@ -35,7 +31,7 @@ fn eval_bang(right: Object) -> Object {
 
 fn eval_minus(right: Object) -> Object {
     return match right {
-        Object::Integer(i) => Object::Integer(Integer{ value: -1*i.value}),
+        Object::Integer(i) => Object::Integer(-1*i),
         _ => Object::Null,
     };
 }
@@ -50,37 +46,37 @@ fn eval_prefix_expression(op: String, right: Object) -> Object {
 
 fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object {
     return match op.as_str() {
-        "+" => Object::Integer(Integer{ value: left + right }),
-        "-" => Object::Integer(Integer{ value: left - right }),
-        "*" => Object::Integer(Integer{ value: left * right }),
-        "/" => Object::Integer(Integer{ value: left / right }),
-        "**" => Object::Integer(Integer{ value: i32::pow(left, right.try_into().unwrap()) }),
-        "<" => Object::Boolean(Boolean{ value: left < right }),
-        ">" => Object::Boolean(Boolean{ value: left > right }),
-        "==" => Object::Boolean(Boolean{ value: left == right }),
-        "!=" => Object::Boolean(Boolean{ value: left != right }),
+        "+" => Object::Integer(left + right),
+        "-" => Object::Integer(left - right),
+        "*" => Object::Integer(left * right),
+        "/" => Object::Integer(left / right),
+        "**" => Object::Integer(i32::pow(left, right.try_into().unwrap())),
+        "<" => Object::Boolean(left < right),
+        ">" => Object::Boolean(left > right),
+        "==" => Object::Boolean(left == right),
+        "!=" => Object::Boolean(left != right),
         _ => Object::Null,
     };
 }
 
 fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object {
     return match op.as_str() {
-        "==" => Object::Boolean(Boolean { value: left == right }),
-        "!=" => Object::Boolean(Boolean { value: left != right }),
+        "==" => Object::Boolean(left == right),
+        "!=" => Object::Boolean(left != right),
         _ => Object::Null,
     };
 }
 
 fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
     return match op.as_str() {
-        "==" => Object::Boolean(Boolean{ value: left == right }),
-        "!=" => Object::Boolean(Boolean{ value: left != right }),
-        "<" => Object::Boolean(Boolean{ value: left < right }),
-        ">" => Object::Boolean(Boolean{ value: left > right }),
+        "==" => Object::Boolean(left == right),
+        "!=" => Object::Boolean(left != right),
+        "<" => Object::Boolean(left < right),
+        ">" => Object::Boolean(left > right),
         _ => match left {
             Object::Integer(l) => {
                 if let Object::Integer(r) = right {
-                    eval_infix_int_expression(op, l.value, r.value)
+                    eval_infix_int_expression(op, l, r)
                 } else {
                     Object::Null
                 }
@@ -92,12 +88,8 @@ fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
 
 fn eval_expression(e: Expression) -> Object {
     return match e {
-        Expression::IntegerLiteral(i) => Object::Integer(Integer {
-            value: i.value,
-        }),
-        Expression::Boolean(b) => Object::Boolean(Boolean {
-            value: b.value,
-        }),
+        Expression::IntegerLiteral(i) => Object::Integer(i.value),
+        Expression::Boolean(b) => Object::Boolean(b.value),
         Expression::PrefixExpression(pe) => {
             let right = eval_expression(*pe.right);
             eval_prefix_expression(pe.operator, right)

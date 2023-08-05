@@ -14,7 +14,7 @@ fn eval_integer_expression() {
 
     let obj = eval(crate::ast::Node::Program(program));
     if let Object::Integer(i) = obj {
-        assert_eq!(5, i.value);
+        assert_eq!(5, i);
     } else {
         panic!("obj is not an Integer");
     }
@@ -34,7 +34,7 @@ fn eval_boolean_expression() {
 
     let obj = eval(crate::ast::Node::Program(program));
     if let Object::Boolean(b) = obj {
-        assert_eq!(true, b.value);
+        assert_eq!(true, b);
     } else {
         panic!("obj is not an Boolean");
     }
@@ -54,7 +54,7 @@ fn eval_bang_expression() {
 
     let obj = eval(crate::ast::Node::Program(program));
     if let Object::Boolean(b) = obj {
-        assert_eq!(false, b.value);
+        assert_eq!(false, b);
     } else {
         panic!("obj is not an Boolean");
     }
@@ -74,7 +74,7 @@ fn eval_minus_expression() {
 
     let obj = eval(crate::ast::Node::Program(program));
     if let Object::Integer(i) = obj {
-        assert_eq!(-10, i.value);
+        assert_eq!(-10, i);
     } else {
         panic!("obj is not an Integer");
     }
@@ -100,7 +100,7 @@ fn eval_infix_int_expression() {
         let obj = eval(crate::ast::Node::Program(program));
         println!("{:?}", obj);
         if let Object::Integer(i) = obj {
-            assert_eq!(*o, i.value);
+            assert_eq!(*o, i);
         } else {
             panic!("obj is not an Integer");
         }
@@ -132,7 +132,7 @@ fn eval_infix_bool_expression() {
         let obj = eval(crate::ast::Node::Program(program));
         println!("{} {:?}", i, obj);
         if let Object::Boolean(i) = obj {
-            assert_eq!(*o, i.value);
+            assert_eq!(*o, i);
         } else {
             panic!("obj is not an Boolean");
         }

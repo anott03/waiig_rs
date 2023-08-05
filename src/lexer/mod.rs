@@ -80,7 +80,14 @@ impl<'a> Lexer<'a> {
 
             '+' => Token::PLUS,
             '-' => Token::MINUS,
-            '*' => Token::ASTERISK,
+            '*' => {
+                if self.peek_char() == '*' {
+                    self.read_char();
+                    Token::POWER
+                } else {
+                    Token::ASTERISK
+                }
+            },
             '/' => Token::SLASH,
             '<' => Token::LT,
             '>' => Token::GT,

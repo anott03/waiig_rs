@@ -29,6 +29,7 @@ pub enum Token {
     BANG,
     ASTERISK,
     SLASH,
+    POWER,
 
     LT,
     GT,
@@ -82,6 +83,7 @@ pub fn get_literal(token: &Token) -> String {
         Token::GT => String::from(">"),
         Token::EQ => String::from("=="),
         Token::NEQ => String::from("!="),
+        Token::POWER => String::from("**"),
     }
 }
 

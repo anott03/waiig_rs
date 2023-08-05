@@ -222,6 +222,47 @@ fn parse_infix_expression() {
     }
 }
 
+#[test]
+fn parse_power_expression() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "2 ** 3";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        let statement = program.statements[0].clone();
+        if let ast::Statement::ExpressionStatement(es) = statement {
+            if let ast::Expression::InfixExpression(ie) = es.expression {
+                assert_eq!("**", ie.operator);
+                let right = *ie.right;
+                let left = *ie.left;
+
+                if let ast::Expression::IntegerLiteral(l) = left {
+                    assert_eq!(2, l.value);
+                } else {
+                    panic!("left value is not 5");
+                }
+
+                if let ast::Expression::IntegerLiteral(r) = right {
+                    assert_eq!(3, r.value);
+                } else {
+                    panic!("right value is not 5");
+                }
+            } else {
+                panic!("ExpressionStatement expression is not an InfixExpression");
+            }
+        } else {
+            panic!("statement is not an ExpressionStatement");
+        }
+    }
+}
+
 // TODO: test a bunch of other expressions to ensure priority works as intended
 // a + b + c
 // a + b * c

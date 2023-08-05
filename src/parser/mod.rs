@@ -14,6 +14,7 @@ enum Priority {
     LESSGREATER,
     SUM,
     PRODUCT,
+    POWER,
     PREFIX,
     CALL,
 }
@@ -24,6 +25,7 @@ fn get_priority(t: &Token) -> Priority {
         Token::LT | Token::GT => Priority::LESSGREATER,
         Token::PLUS | Token::MINUS => Priority::SUM,
         Token::SLASH | Token::ASTERISK => Priority::PRODUCT,
+        Token::POWER => Priority::POWER,
         Token::LPAREN => Priority::CALL,
         _ => Priority::LOWEST,
     };
@@ -281,7 +283,8 @@ fn get_infix_fn(token: Token) -> Option<InfixParseFn> {
         | Token::EQ
         | Token::NEQ
         | Token::LT
-        | Token::GT => Some(parse_infix_expression),
+        | Token::GT
+        | Token::POWER => Some(parse_infix_expression),
         Token::LPAREN => Some(parse_call_expression),
         _ => None,
     };

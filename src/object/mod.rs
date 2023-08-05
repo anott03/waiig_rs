@@ -28,7 +28,7 @@ pub enum Object {
 }
 
 impl Object {
-    fn inspect(&self) -> String {
+    pub fn inspect(&self) -> String {
         return match self {
             Object::Integer(i) => i.inspect(),
             Object::Boolean(b) => b.inspect(),

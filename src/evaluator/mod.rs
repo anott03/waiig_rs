@@ -54,6 +54,7 @@ fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object {
         "-" => Object::Integer(Integer{ value: left - right }),
         "*" => Object::Integer(Integer{ value: left * right }),
         "/" => Object::Integer(Integer{ value: left / right }),
+        "**" => Object::Integer(Integer{ value: i32::pow(left, right.try_into().unwrap()) }),
         "<" => Object::Boolean(Boolean{ value: left < right }),
         ">" => Object::Boolean(Boolean{ value: left > right }),
         "==" => Object::Boolean(Boolean{ value: left == right }),

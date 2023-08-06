@@ -6,6 +6,14 @@ use crate::ast::*;
 const TRUE: Object = Object::Boolean(true);
 const FALSE: Object = Object::Boolean(false);
 
+fn is_truthy(condition: Object) -> bool {
+    return match condition {
+        Object::Null => false,
+        Object::Boolean(b) => if b { true } else { false },
+        Object::Integer(i) => if i == 0 { false } else { true },
+    };
+}
+
 fn eval_program(p: Program) -> Object {
     let mut result: Object = Object::Null;
     p.statements.iter().for_each(|s| {
@@ -98,6 +106,18 @@ fn eval_expression(e: Expression) -> Object {
             let left = eval_expression(*ie.left);
             let right = eval_expression(*ie.right);
             eval_infix_expression(ie.operator, left, right)
+        },
+        Expression::IfExpression(ie) => {
+            let condition = eval_expression(*ie.condition);
+            if is_truthy(condition) {
+                eval(Node::BlockStatement(ie.consequence))
+            } else {
+                if let Some(alt) = ie.alternative {
+                    eval(Node::BlockStatement(alt))
+                } else {
+                    Object::Null
+                }
+            }
         }
         _ => Object::Null,
     };
@@ -108,5 +128,12 @@ pub fn eval(node: Node) -> Object {
         Node::Program(p) => eval_program(p),
         Node::Statement(s) => eval_statement(s),
         Node::Expression(e) => eval_expression(e),
+        Node::BlockStatement(bs) => {
+            let mut result: Object = Object::Null;
+            bs.statements.iter().for_each(|s| {
+                result = eval_statement(s.clone());
+            });
+            result
+        },
     };
 }

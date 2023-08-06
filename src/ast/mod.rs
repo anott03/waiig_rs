@@ -315,6 +315,7 @@ pub enum Node {
     Program(Program),
     Expression(Expression),
     Statement(Statement),
+    BlockStatement(BlockStatement),
 }
 
 #[cfg(test)]

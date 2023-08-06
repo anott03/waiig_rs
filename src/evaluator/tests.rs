@@ -138,3 +138,28 @@ fn eval_infix_bool_expression() {
         }
     });
 }
+
+#[test]
+fn eval_if_expression() {
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::Object;
+    use crate::evaluator::eval;
+
+    let tests = vec![
+        (String::from("if (0) { true } else { false }"), false),
+        (String::from("if (1) { true } else { false }"), true),
+    ];
+
+    tests.iter().for_each(|(i, o)| {
+        let mut p = Parser::new(Lexer::new(i.as_str()));
+        let program = p.parse_program().unwrap();
+        let obj = eval(crate::ast::Node::Program(program));
+        println!("{} {:?}", i, obj);
+        if let Object::Boolean(i) = obj {
+            assert_eq!(*o, i);
+        } else {
+            panic!("obj is not an Boolean");
+        }
+    });
+}

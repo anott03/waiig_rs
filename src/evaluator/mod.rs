@@ -23,10 +23,10 @@ fn is_truthy(condition: Object) -> bool {
     };
 }
 
-fn eval_program(p: Program) -> Object {
+fn eval_program(p: Program, env: &mut Environment) -> Object {
     let mut result: Object = Object::Null;
     for i in 0..p.statements.len() {
-        result = eval_statement(p.statements[i].clone());
+        result = eval_statement(p.statements[i].clone(), env);
         if let Object::ReturnValue(r) = result{
             return *r;
         } else if let Object::Error(_) = result {
@@ -36,10 +36,10 @@ fn eval_program(p: Program) -> Object {
     return result;
 }
 
-fn eval_block_statement(bs: BlockStatement) -> Object {
+fn eval_block_statement(bs: BlockStatement, env: &mut Environment) -> Object {
     let mut result: Object = Object::Null;
     for i in 0..bs.statements.len() {
-        result = eval_statement(bs.statements[i].clone());
+        result = eval_statement(bs.statements[i].clone(), env);
         if let Object::ReturnValue(_) = result {
             break;
         }
@@ -50,18 +50,29 @@ fn eval_block_statement(bs: BlockStatement) -> Object {
     return result;
 }
 
-fn eval_statement(s: Statement) -> Object {
+fn eval_statement(s: Statement, env: &mut Environment) -> Object {
     return match s {
-        Statement::ExpressionStatement(es) => eval_expression(es.expression),
+        Statement::ExpressionStatement(es) => eval_expression(es.expression, env),
         Statement::ReturnStatement(rs) => {
-            let val = eval_expression(rs.return_val);
+            let val = eval_expression(rs.return_val, env);
             if let Object::Error(_) = val {
                 val
             } else {
                 Object::ReturnValue(Box::new(val))
             }
         },
-        _ => Object::Null,
+        Statement::LetStatement(ls) => {
+            if let Some(value) = ls.value {
+                let val = eval_expression(value, env);
+                if let Object::Error(_) = val {
+                    val
+                } else {
+                    Object::Null
+                }
+            } else {
+                new_error!("variable does not have initial value: {}", ls.name.value)
+            }
+        }
     };
 }
 
@@ -130,12 +141,12 @@ fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
     };
 }
 
-fn eval_expression(e: Expression) -> Object {
+fn eval_expression(e: Expression, env: &mut Environment) -> Object {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
         Expression::Boolean(b) => Object::Boolean(b.value),
         Expression::PrefixExpression(pe) => {
-            let right = eval_expression(*pe.right);
+            let right = eval_expression(*pe.right, env);
             if let Object::Error(_) = right {
                 right
             } else {
@@ -143,8 +154,8 @@ fn eval_expression(e: Expression) -> Object {
             }
         },
         Expression::InfixExpression(ie) => {
-            let left = eval_expression(*ie.left);
-            let right = eval_expression(*ie.right);
+            let left = eval_expression(*ie.left, env);
+            let right = eval_expression(*ie.right, env);
             if let Object::Error(_) = left {
                 left
             } else if let Object::Error(_) = right {
@@ -154,14 +165,14 @@ fn eval_expression(e: Expression) -> Object {
             }
         },
         Expression::IfExpression(ie) => {
-            let condition = eval_expression(*ie.condition);
+            let condition = eval_expression(*ie.condition, env);
             if let Object::Error(_) = condition {
                 condition
             } else if is_truthy(condition) {
-                eval(Node::BlockStatement(ie.consequence))
+                eval(Node::BlockStatement(ie.consequence), env)
             } else {
                 if let Some(alt) = ie.alternative {
-                    eval(Node::BlockStatement(alt))
+                    eval(Node::BlockStatement(alt), env)
                 } else {
                     Object::Null
                 }
@@ -171,11 +182,11 @@ fn eval_expression(e: Expression) -> Object {
     };
 }
 
-pub fn eval(node: Node) -> Object {
+pub fn eval(node: Node, env: &mut Environment) -> Object {
     return match node {
-        Node::Program(p) => eval_program(p),
-        Node::Statement(s) => eval_statement(s),
-        Node::Expression(e) => eval_expression(e),
-        Node::BlockStatement(bs) => eval_block_statement(bs),
+        Node::Program(p) => eval_program(p, env),
+        Node::Statement(s) => eval_statement(s, env),
+        Node::Expression(e) => eval_expression(e, env),
+        Node::BlockStatement(bs) => eval_block_statement(bs, env),
     };
 }

@@ -28,3 +28,24 @@ pub fn get_type(obj: &Object) -> String {
         Object::Null => String::from("NULL"),
     };
 }
+
+#[derive(Debug)]
+pub struct Environment {
+    store: std::collections::HashMap<String, Object>
+}
+
+impl Environment {
+    pub fn new() -> Self {
+        return Self {
+            store: std::collections::HashMap::new(),
+        };
+    }
+
+    pub fn get(&self, name: &String) -> Option<&Object> {
+        return self.store.get(name);
+    }
+
+    pub fn set(&mut self, name: String, val: Object) {
+        self.store.insert(name, val);
+    }
+}

@@ -13,7 +13,8 @@ pub fn run() -> std::io::Result<()>{
         let l = Lexer::new(input.as_str());
         let mut p = Parser::new(l);
         let program = p.parse_program().expect("error parsing program");
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = crate::object::Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
 
         println!("{}", obj.inspect());
     }

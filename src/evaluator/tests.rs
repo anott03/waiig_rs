@@ -4,15 +4,15 @@
 fn eval_integer_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let input = "5";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-
-    let obj = eval(crate::ast::Node::Program(program));
+    let mut env = Environment::new();
+    let obj = eval(crate::ast::Node::Program(program), &mut env);
     if let Object::Integer(i) = obj {
         assert_eq!(5, i);
     } else {
@@ -24,15 +24,15 @@ fn eval_integer_expression() {
 fn eval_boolean_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let input = "true";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-
-    let obj = eval(crate::ast::Node::Program(program));
+    let mut env = Environment::new();
+    let obj = eval(crate::ast::Node::Program(program), &mut env);
     if let Object::Boolean(b) = obj {
         assert_eq!(true, b);
     } else {
@@ -44,15 +44,15 @@ fn eval_boolean_expression() {
 fn eval_bang_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let input = "!true";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-
-    let obj = eval(crate::ast::Node::Program(program));
+    let mut env = Environment::new();
+    let obj = eval(crate::ast::Node::Program(program), &mut env);
     if let Object::Boolean(b) = obj {
         assert_eq!(false, b);
     } else {
@@ -64,15 +64,15 @@ fn eval_bang_expression() {
 fn eval_minus_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let input = "-10";
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-
-    let obj = eval(crate::ast::Node::Program(program));
+    let mut env = Environment::new();
+    let obj = eval(crate::ast::Node::Program(program), &mut env);
     if let Object::Integer(i) = obj {
         assert_eq!(-10, i);
     } else {
@@ -84,7 +84,7 @@ fn eval_minus_expression() {
 fn eval_infix_int_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let tests = vec![
@@ -97,7 +97,8 @@ fn eval_infix_int_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
         println!("{:?}", obj);
         if let Object::Integer(i) = obj {
             assert_eq!(*o, i);
@@ -111,7 +112,7 @@ fn eval_infix_int_expression() {
 fn eval_infix_bool_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let tests = vec![
@@ -129,7 +130,8 @@ fn eval_infix_bool_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
         println!("{} {:?}", i, obj);
         if let Object::Boolean(i) = obj {
             assert_eq!(*o, i);
@@ -143,7 +145,7 @@ fn eval_infix_bool_expression() {
 fn eval_if_expression() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let tests = vec![
@@ -154,7 +156,8 @@ fn eval_if_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
         println!("{} {:?}", i, obj);
         if let Object::Boolean(i) = obj {
             assert_eq!(*o, i);
@@ -168,7 +171,7 @@ fn eval_if_expression() {
 fn eval_return_statement() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let tests = vec![
@@ -185,7 +188,8 @@ fn eval_return_statement() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
         println!("{} {:?}", i, obj);
         if let Object::Integer(i) = obj {
             assert_eq!(*o, i);
@@ -200,7 +204,7 @@ fn eval_return_statement() {
 fn error_handling() {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
-    use crate::object::Object;
+    use crate::object::*;
     use crate::evaluator::eval;
 
     let tests = vec![
@@ -215,7 +219,8 @@ fn error_handling() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i));
         let program = p.parse_program().unwrap();
-        let obj = eval(crate::ast::Node::Program(program));
+        let mut env = Environment::new();
+        let obj = eval(crate::ast::Node::Program(program), &mut env);
         if let Object::Error(e) = obj {
             assert_eq!(*o, e);
         } else {

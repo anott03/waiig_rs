@@ -195,3 +195,31 @@ fn eval_return_statement() {
         }
     });
 }
+
+#[test]
+fn error_handling() {
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::Object;
+    use crate::evaluator::eval;
+
+    let tests = vec![
+        ("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+        ("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
+        ("-true", "unknown operator: -BOOLEAN"),
+        ("true + false", "unknown operator: BOOLEAN + BOOLEAN"),
+        ("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
+        ("if (10 > 1) { return true + false; }", "unknown operator: BOOLEAN + BOOLEAN"),
+    ];
+
+    tests.iter().for_each(|(i, o)| {
+        let mut p = Parser::new(Lexer::new(i));
+        let program = p.parse_program().unwrap();
+        let obj = eval(crate::ast::Node::Program(program));
+        if let Object::Error(e) = obj {
+            assert_eq!(*o, e);
+        } else {
+            panic!("obj is not an Error");
+        }
+    });
+}

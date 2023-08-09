@@ -12,6 +12,7 @@ fn is_truthy(condition: Object) -> bool {
         Object::Boolean(b) => if b { true } else { false },
         Object::Integer(i) => if i == 0 { false } else { true },
         Object::ReturnValue(r) => is_truthy(*r),
+        _ => true,
     };
 }
 
@@ -26,9 +27,21 @@ fn eval_program(p: Program) -> Object {
     return result;
 }
 
+fn eval_block_statement(bs: BlockStatement) -> Object {
+    let mut result: Object = Object::Null;
+    for i in 0..bs.statements.len() {
+        result = eval_statement(bs.statements[i].clone());
+        if let Object::ReturnValue(_) = result {
+            break;
+        }
+    }
+    return result;
+}
+
 fn eval_statement(s: Statement) -> Object {
     return match s {
         Statement::ExpressionStatement(es) => eval_expression(es.expression),
+        Statement::ReturnStatement(rs) => Object::ReturnValue(Box::new(eval_expression(rs.return_val))),
         _ => Object::Null,
     };
 }
@@ -132,15 +145,6 @@ pub fn eval(node: Node) -> Object {
         Node::Program(p) => eval_program(p),
         Node::Statement(s) => eval_statement(s),
         Node::Expression(e) => eval_expression(e),
-        Node::BlockStatement(bs) => {
-            let mut result: Object = Object::Null;
-            for i in 0..bs.statements.len() {
-                result = eval_statement(bs.statements[i].clone());
-                if let Object::ReturnValue(_) = result {
-                    return result;
-                }
-            }
-            result
-        },
+        Node::BlockStatement(bs) => eval_block_statement(bs),
     };
 }

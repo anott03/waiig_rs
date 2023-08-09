@@ -163,3 +163,35 @@ fn eval_if_expression() {
         }
     });
 }
+
+#[test]
+fn eval_return_statement() {
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::Object;
+    use crate::evaluator::eval;
+
+    let tests = vec![
+        (String::from("return 5"), 5),
+        (String::from("return 10"), 10),
+        (String::from("if (10 > 1) {
+            if (10 > 1) {
+                return 10;
+            }
+            return 1;
+        }"), 10)
+    ];
+
+    tests.iter().for_each(|(i, o)| {
+        let mut p = Parser::new(Lexer::new(i.as_str()));
+        let program = p.parse_program().unwrap();
+        let obj = eval(crate::ast::Node::Program(program));
+        println!("{} {:?}", i, obj);
+        if let Object::Integer(i) = obj {
+            assert_eq!(*o, i);
+        } else {
+            println!("{:?}", obj);
+            panic!("obj is no an Integer");
+        }
+    });
+}

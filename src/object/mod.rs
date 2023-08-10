@@ -31,13 +31,13 @@ pub fn get_type(obj: &Object) -> String {
 
 #[derive(Debug)]
 pub struct Environment {
-    store: std::collections::HashMap<String, Object>
+    store: Box<std::collections::HashMap<String, Object>>
 }
 
 impl Environment {
     pub fn new() -> Self {
         return Self {
-            store: std::collections::HashMap::new(),
+            store: Box::new(std::collections::HashMap::new()),
         };
     }
 

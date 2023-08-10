@@ -67,7 +67,8 @@ fn eval_statement(s: Statement, env: &mut Environment) -> Object {
                 if let Object::Error(_) = val {
                     val
                 } else {
-                    Object::Null
+                    env.set(ls.name.value.clone(), val.clone());
+                    val
                 }
             } else {
                 new_error!("variable does not have initial value: {}", ls.name.value)
@@ -178,6 +179,13 @@ fn eval_expression(e: Expression, env: &mut Environment) -> Object {
                 }
             }
         }
+        Expression::Identifier(i) => {
+            if let Some(val) = env.get(&i.value) {
+                val.clone()
+            } else {
+                new_error!("unknown identifier: {}", i.value);
+            }
+        },
         _ => Object::Null,
     };
 }

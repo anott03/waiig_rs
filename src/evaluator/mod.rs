@@ -1,5 +1,6 @@
 mod tests;
 
+use crate::object;
 use crate::object::*;
 use crate::ast::*;
 
@@ -142,6 +143,19 @@ fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
     };
 }
 
+fn eval_expressions(exps: Vec<Box<Expression>>, env: &mut Environment) -> Vec<Object> {
+    let mut objs: Vec<Object> = Vec::new();
+    for i in 0..exps.len() {
+        let exp = *exps[i].clone();
+        let evaluated = eval_expression(exp, env);
+        if let Object::Error(_) = evaluated {
+            return vec![evaluated];
+        }
+        objs.push(evaluated);
+    };
+    return objs;
+}
+
 fn eval_expression(e: Expression, env: &mut Environment) -> Object {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
@@ -186,7 +200,26 @@ fn eval_expression(e: Expression, env: &mut Environment) -> Object {
                 new_error!("unknown identifier: {}", i.value);
             }
         },
-        _ => Object::Null,
+        Expression::FunctionLiteral(fl) => {
+            let parameters = fl.parameters;
+            let body = fl.body;
+            
+            Object::Function(Function { parameters, body })
+        }
+        Expression::CallExpression(ce) => {
+            let function = eval_expression(*ce.function, env);
+            if let Object::Error(_) = function {
+                function
+            } else {
+                let args = eval_expressions(ce.arguments, env);
+                if let Object::Error(_) = args[0] {
+                    args[0].clone()
+                } else {
+                    Object::Null
+                }
+            }
+        },
+        Expression::Empty => Object::Null,
     };
 }
 

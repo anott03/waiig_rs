@@ -2,6 +2,7 @@
 
 #[test]
 fn eval_integer_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -11,8 +12,8 @@ fn eval_integer_expression() {
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-    let mut env = Environment::new();
-    let obj = eval(crate::ast::Node::Program(program), &mut env);
+    let env = Arc::new(Mutex::new(Environment::new()));
+    let obj = eval(crate::ast::Node::Program(program), env);
     if let Object::Integer(i) = obj {
         assert_eq!(5, i);
     } else {
@@ -22,6 +23,7 @@ fn eval_integer_expression() {
 
 #[test]
 fn eval_boolean_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -31,8 +33,8 @@ fn eval_boolean_expression() {
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-    let mut env = Environment::new();
-    let obj = eval(crate::ast::Node::Program(program), &mut env);
+    let env = Arc::new(Mutex::new(Environment::new()));
+    let obj = eval(crate::ast::Node::Program(program), env);
     if let Object::Boolean(b) = obj {
         assert_eq!(true, b);
     } else {
@@ -42,6 +44,7 @@ fn eval_boolean_expression() {
 
 #[test]
 fn eval_bang_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -51,8 +54,8 @@ fn eval_bang_expression() {
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-    let mut env = Environment::new();
-    let obj = eval(crate::ast::Node::Program(program), &mut env);
+    let env = Arc::new(Mutex::new(Environment::new()));
+    let obj = eval(crate::ast::Node::Program(program), env);
     if let Object::Boolean(b) = obj {
         assert_eq!(false, b);
     } else {
@@ -62,6 +65,7 @@ fn eval_bang_expression() {
 
 #[test]
 fn eval_minus_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -71,8 +75,8 @@ fn eval_minus_expression() {
     let l = Lexer::new(input);
     let mut p = Parser::new(l);
     let program = p.parse_program().unwrap();
-    let mut env = Environment::new();
-    let obj = eval(crate::ast::Node::Program(program), &mut env);
+    let env = Arc::new(Mutex::new(Environment::new()));
+    let obj = eval(crate::ast::Node::Program(program), env);
     if let Object::Integer(i) = obj {
         assert_eq!(-10, i);
     } else {
@@ -82,6 +86,7 @@ fn eval_minus_expression() {
 
 #[test]
 fn eval_infix_int_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -97,8 +102,8 @@ fn eval_infix_int_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let mut env = Environment::new();
-        let obj = eval(crate::ast::Node::Program(program), &mut env);
+        let env = Arc::new(Mutex::new(Environment::new()));
+        let obj = eval(crate::ast::Node::Program(program), env);
         println!("{:?}", obj);
         if let Object::Integer(i) = obj {
             assert_eq!(*o, i);
@@ -110,6 +115,7 @@ fn eval_infix_int_expression() {
 
 #[test]
 fn eval_infix_bool_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -130,8 +136,8 @@ fn eval_infix_bool_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let mut env = Environment::new();
-        let obj = eval(crate::ast::Node::Program(program), &mut env);
+        let env = Arc::new(Mutex::new(Environment::new()));
+        let obj = eval(crate::ast::Node::Program(program), env);
         println!("{} {:?}", i, obj);
         if let Object::Boolean(i) = obj {
             assert_eq!(*o, i);
@@ -143,6 +149,7 @@ fn eval_infix_bool_expression() {
 
 #[test]
 fn eval_if_expression() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -156,8 +163,8 @@ fn eval_if_expression() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let mut env = Environment::new();
-        let obj = eval(crate::ast::Node::Program(program), &mut env);
+        let env = Arc::new(Mutex::new(Environment::new()));
+        let obj = eval(crate::ast::Node::Program(program), env);
         println!("{} {:?}", i, obj);
         if let Object::Boolean(i) = obj {
             assert_eq!(*o, i);
@@ -169,6 +176,7 @@ fn eval_if_expression() {
 
 #[test]
 fn eval_return_statement() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -188,8 +196,8 @@ fn eval_return_statement() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i.as_str()));
         let program = p.parse_program().unwrap();
-        let mut env = Environment::new();
-        let obj = eval(crate::ast::Node::Program(program), &mut env);
+        let env = Arc::new(Mutex::new(Environment::new()));
+        let obj = eval(crate::ast::Node::Program(program), env);
         println!("{} {:?}", i, obj);
         if let Object::Integer(i) = obj {
             assert_eq!(*o, i);
@@ -202,6 +210,7 @@ fn eval_return_statement() {
 
 #[test]
 fn error_handling() {
+    use std::sync::{Arc, Mutex};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::object::*;
@@ -219,8 +228,8 @@ fn error_handling() {
     tests.iter().for_each(|(i, o)| {
         let mut p = Parser::new(Lexer::new(i));
         let program = p.parse_program().unwrap();
-        let mut env = Environment::new();
-        let obj = eval(crate::ast::Node::Program(program), &mut env);
+        let env = Arc::new(Mutex::new(Environment::new()));
+        let obj = eval(crate::ast::Node::Program(program), env);
         if let Object::Error(e) = obj {
             assert_eq!(*o, e);
         } else {

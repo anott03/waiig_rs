@@ -1,11 +1,8 @@
 mod tests;
 
-use crate::object;
+use std::sync::{Mutex, Arc};
 use crate::object::*;
 use crate::ast::*;
-
-const TRUE: Object = Object::Boolean(true);
-const FALSE: Object = Object::Boolean(false);
 
 macro_rules! new_error {
     ($($arg:tt)*) => {{
@@ -24,10 +21,10 @@ fn is_truthy(condition: Object) -> bool {
     };
 }
 
-fn eval_program(p: Program, env: &mut Environment) -> Object {
+fn eval_program(p: Program, env: Arc<Environment<'static>>) -> Object<'static> {
     let mut result: Object = Object::Null;
     for i in 0..p.statements.len() {
-        result = eval_statement(p.statements[i].clone(), env);
+        result = eval_statement(p.statements[i].clone(), env.clone());
         if let Object::ReturnValue(r) = result{
             return *r;
         } else if let Object::Error(_) = result {
@@ -37,10 +34,10 @@ fn eval_program(p: Program, env: &mut Environment) -> Object {
     return result;
 }
 
-fn eval_block_statement(bs: BlockStatement, env: &mut Environment) -> Object {
+fn eval_block_statement(bs: BlockStatement, env: Arc<Environment<'static>>) -> Object<'static> {
     let mut result: Object = Object::Null;
     for i in 0..bs.statements.len() {
-        result = eval_statement(bs.statements[i].clone(), env);
+        result = eval_statement(bs.statements[i].clone(), env.clone());
         if let Object::ReturnValue(_) = result {
             break;
         }
@@ -51,9 +48,9 @@ fn eval_block_statement(bs: BlockStatement, env: &mut Environment) -> Object {
     return result;
 }
 
-fn eval_statement(s: Statement, env: &mut Environment) -> Object {
+fn eval_statement(s: Statement, env: Arc<Environment<'static>>) -> Object<'static> {
     return match s {
-        Statement::ExpressionStatement(es) => eval_expression(es.expression, env),
+        Statement::ExpressionStatement(es) => eval_expression(es.expression, env.clone()),
         Statement::ReturnStatement(rs) => {
             let val = eval_expression(rs.return_val, env);
             if let Object::Error(_) = val {
@@ -64,7 +61,7 @@ fn eval_statement(s: Statement, env: &mut Environment) -> Object {
         },
         Statement::LetStatement(ls) => {
             if let Some(value) = ls.value {
-                let val = eval_expression(value, env);
+                let val = eval_expression(value, env.clone());
                 if let Object::Error(_) = val {
                     val
                 } else {
@@ -80,9 +77,9 @@ fn eval_statement(s: Statement, env: &mut Environment) -> Object {
 
 fn eval_bang(right: Object) -> Object {
     return match right {
-        Object::Boolean(b) => if b == true { FALSE } else { TRUE },
-        Object::Null => TRUE,
-        _ => FALSE,
+        Object::Boolean(b) => if b == true { Object::Boolean(false) } else { Object::Boolean(true) },
+        Object::Null => Object::Boolean(true),
+        _ => Object::Boolean(false),
     };
 }
 
@@ -101,7 +98,7 @@ fn eval_prefix_expression(op: String, right: Object) -> Object {
     };
 }
 
-fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object {
+fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object<'static> {
     return match op.as_str() {
         "+" => Object::Integer(left + right),
         "-" => Object::Integer(left - right),
@@ -116,7 +113,7 @@ fn eval_infix_int_expression(op: String, left: i32, right: i32) -> Object {
     };
 }
 
-fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object {
+fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object<'static> {
     return match op.as_str() {
         "==" => Object::Boolean(left == right),
         "!=" => Object::Boolean(left != right),
@@ -124,7 +121,7 @@ fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object {
     };
 }
 
-fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
+fn eval_infix_expression(op: String, left: Object<'static>, right: Object<'static>) -> Object<'static> {
     return match op.as_str() {
         "==" => Object::Boolean(left == right),
         "!=" => Object::Boolean(left != right),
@@ -143,11 +140,11 @@ fn eval_infix_expression(op: String, left: Object, right: Object) -> Object {
     };
 }
 
-fn eval_expressions(exps: Vec<Box<Expression>>, env: &mut Environment) -> Vec<Object> {
+fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Environment<'static>>) -> Vec<Object<'static>> {
     let mut objs: Vec<Object> = Vec::new();
     for i in 0..exps.len() {
         let exp = *exps[i].clone();
-        let evaluated = eval_expression(exp, env);
+        let evaluated = eval_expression(exp, env.clone());
         if let Object::Error(_) = evaluated {
             return vec![evaluated];
         }
@@ -156,7 +153,7 @@ fn eval_expressions(exps: Vec<Box<Expression>>, env: &mut Environment) -> Vec<Ob
     return objs;
 }
 
-fn eval_expression(e: Expression, env: &mut Environment) -> Object {
+fn eval_expression(e: Expression, env: Arc<Environment<'static>>) -> Object<'static> {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
         Expression::Boolean(b) => Object::Boolean(b.value),
@@ -169,8 +166,8 @@ fn eval_expression(e: Expression, env: &mut Environment) -> Object {
             }
         },
         Expression::InfixExpression(ie) => {
-            let left = eval_expression(*ie.left, env);
-            let right = eval_expression(*ie.right, env);
+            let left = eval_expression(*ie.left, env.clone());
+            let right = eval_expression(*ie.right, env.clone());
             if let Object::Error(_) = left {
                 left
             } else if let Object::Error(_) = right {
@@ -180,38 +177,39 @@ fn eval_expression(e: Expression, env: &mut Environment) -> Object {
             }
         },
         Expression::IfExpression(ie) => {
-            let condition = eval_expression(*ie.condition, env);
+            let condition = eval_expression(*ie.condition, env.clone());
             if let Object::Error(_) = condition {
                 condition
             } else if is_truthy(condition) {
-                eval(Node::BlockStatement(ie.consequence), env)
+                eval(Node::BlockStatement(ie.consequence), env.clone())
             } else {
                 if let Some(alt) = ie.alternative {
-                    eval(Node::BlockStatement(alt), env)
+                    eval(Node::BlockStatement(alt), env.clone())
                 } else {
                     Object::Null
                 }
             }
         }
         Expression::Identifier(i) => {
-            if let Some(val) = env.get(&i.value) {
-                val.clone()
-            } else {
-                new_error!("unknown identifier: {}", i.value);
-            }
+            // if let Some(val) = env.get(&i.value) {
+            //     val.clone()
+            // } else {
+            //     new_error!("unknown identifier: {}", i.value);
+            // }
+            new_error!("unknown identifier: {}", i.value)
         },
         Expression::FunctionLiteral(fl) => {
             let parameters = fl.parameters;
             let body = fl.body;
             
-            Object::Function(Function { parameters, body })
+            Object::Function(Function { parameters, body, env: Some(env) })
         }
         Expression::CallExpression(ce) => {
-            let function = eval_expression(*ce.function, env);
+            let function = eval_expression(*ce.function, env.clone());
             if let Object::Error(_) = function {
                 function
             } else {
-                let args = eval_expressions(ce.arguments, env);
+                let args = eval_expressions(ce.arguments, env.clone());
                 if let Object::Error(_) = args[0] {
                     args[0].clone()
                 } else {
@@ -223,11 +221,11 @@ fn eval_expression(e: Expression, env: &mut Environment) -> Object {
     };
 }
 
-pub fn eval(node: Node, env: &mut Environment) -> Object {
+pub fn eval(node: Node, env: Arc<Environment<'static>>) -> Object<'static> {
     return match node {
-        Node::Program(p) => eval_program(p, env),
-        Node::Statement(s) => eval_statement(s, env),
-        Node::Expression(e) => eval_expression(e, env),
-        Node::BlockStatement(bs) => eval_block_statement(bs, env),
+        Node::Program(p) => eval_program(p, env.clone()),
+        Node::Statement(s) => eval_statement(s, env.clone()),
+        Node::Expression(e) => eval_expression(e, env.clone()),
+        Node::BlockStatement(bs) => eval_block_statement(bs, env.clone()),
     };
 }

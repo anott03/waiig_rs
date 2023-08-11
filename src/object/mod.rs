@@ -1,43 +1,47 @@
+use std::sync::{Mutex, Arc};
+
 use crate::ast::{self, Inspect};
 
 #[derive(Debug)]
-pub struct Function {
+pub struct Function<'a> {
     pub parameters: Vec<ast::Identifier>,
     pub body: ast::BlockStatement,
+    pub env: Option<Arc<Environment<'a>>>,
 }
 
-impl PartialEq for Function {
+impl PartialEq for Function<'_> {
     fn eq(&self, other: &Self) -> bool {
         return self.parameters.len() == other.parameters.len() && self.body.statements.len() == other.body.statements.len();
     }
 }
 
-impl PartialOrd for Function {
+impl PartialOrd for Function<'_> {
     fn partial_cmp(&self, _other: &Self) -> Option<std::cmp::Ordering> {
         None
     }
 }
 
-impl Clone for Function {
+impl Clone for Function<'_> {
     fn clone(&self) -> Self {
         Self {
             parameters: self.parameters.clone(),
             body: self.body.clone(),
+            env: None,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum Object {
+pub enum Object<'a> {
     Integer(i32),
     Boolean(bool),
-    ReturnValue(Box<Object>),
+    ReturnValue(Box<Object<'a>>),
     Null,
     Error(String),
-    Function(Function),
+    Function(Function<'a>),
 }
 
-impl Object {
+impl Object<'_> {
     pub fn inspect(&self) -> String {
         return match self {
             Object::Integer(i) => i.to_string(),
@@ -71,7 +75,7 @@ pub fn get_type(obj: &Object) -> String {
 
 #[derive(Debug)]
 pub struct Environment<'a> {
-    store: Box<std::collections::HashMap<String, Object>>,
+    store: Box<std::collections::HashMap<String, Object<'a>>>,
     parent: Option<&'a mut Environment<'a>>,
 }
 
@@ -83,7 +87,7 @@ impl <'a>Environment<'a> {
         };
     }
 
-    pub fn get(&self, name: &String) -> Option<&Object> {
+    pub fn get(&'a self, name: &String) -> Option<&Object> {
         if let Some(obj) = self.store.get(name) {
             return Some(obj);
         } else if let Some(parent) = &self.parent {
@@ -92,7 +96,7 @@ impl <'a>Environment<'a> {
         return None;
     }
 
-    pub fn set(&mut self, name: String, val: Object) {
+    pub fn set(&'a mut self, name: String, val: Object<'a>) {
         self.store.insert(name, val);
     }
 

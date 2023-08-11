@@ -76,7 +76,7 @@ pub fn get_type(obj: &Object) -> String {
 #[derive(Debug)]
 pub struct Environment<'a> {
     store: Box<std::collections::HashMap<String, Object<'a>>>,
-    parent: Option<&'a mut Environment<'a>>,
+    parent: Option<Arc<Mutex<Environment<'a>>>>,
 }
 
 impl <'a>Environment<'a> {
@@ -91,7 +91,8 @@ impl <'a>Environment<'a> {
         if let Some(obj) = self.store.get(name) {
             return Some(obj.clone());
         } else if let Some(parent) = &self.parent {
-            return parent.get(name);
+            let p = parent.try_lock().expect("error locking parent");
+            return p.get(name);
         }
         return None;
     }
@@ -99,11 +100,11 @@ impl <'a>Environment<'a> {
     pub fn set<'b>(&'b mut self, name: String, val: Object<'a>) {
         self.store.insert(name, val);
     }
+}
 
-    pub fn new_enclosed(&'a mut self) -> Self {
-        return Self {
-            store: Box::new(std::collections::HashMap::new()),
-            parent: Some(self),
-        }
+pub fn new_enclosed_env(parent: Arc<Mutex<Environment>>) -> Environment {
+    return Environment {
+        store: Box::new(std::collections::HashMap::new()),
+        parent: Some(parent),
     }
 }

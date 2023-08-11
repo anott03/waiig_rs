@@ -215,8 +215,19 @@ fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Obje
                 let args = eval_expressions(ce.arguments, env.clone());
                 if let Object::Error(_) = args[0] {
                     args[0].clone()
+                } else if let Object::Function(f) = function {
+                    let mut local_env = new_enclosed_env(env);
+                    for i in 0..args.len() {
+                        local_env.set(f.parameters[i].value.clone(), args[i].clone());
+                    }
+                    let ret = eval_block_statement(f.body, Arc::new(Mutex::new(local_env)));
+                    if let Object::ReturnValue(rv) = ret {
+                        *rv
+                    } else {
+                        ret
+                    }
                 } else {
-                    Object::Null
+                    new_error!("not a function: {}", get_type(&function))
                 }
             }
         },

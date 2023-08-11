@@ -69,23 +69,37 @@ pub fn get_type(obj: &Object) -> String {
     };
 }
 
-#[derive(Debug, Clone)]
-pub struct Environment {
-    store: Box<std::collections::HashMap<String, Object>>
+#[derive(Debug)]
+pub struct Environment<'a> {
+    store: Box<std::collections::HashMap<String, Object>>,
+    parent: Option<&'a mut Environment<'a>>,
 }
 
-impl Environment {
+impl <'a>Environment<'a> {
     pub fn new() -> Self {
         return Self {
             store: Box::new(std::collections::HashMap::new()),
+            parent: None,
         };
     }
 
     pub fn get(&self, name: &String) -> Option<&Object> {
-        return self.store.get(name);
+        if let Some(obj) = self.store.get(name) {
+            return Some(obj);
+        } else if let Some(parent) = &self.parent {
+            return parent.get(name);
+        }
+        return None;
     }
 
     pub fn set(&mut self, name: String, val: Object) {
         self.store.insert(name, val);
+    }
+
+    pub fn new_enclosed(&'a mut self) -> Self {
+        return Self {
+            store: Box::new(std::collections::HashMap::new()),
+            parent: Some(self),
+        }
     }
 }

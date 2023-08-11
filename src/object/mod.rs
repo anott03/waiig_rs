@@ -6,7 +6,7 @@ use crate::ast::{self, Inspect};
 pub struct Function<'a> {
     pub parameters: Vec<ast::Identifier>,
     pub body: ast::BlockStatement,
-    pub env: Option<Arc<Environment<'a>>>,
+    pub env: Option<Arc<Mutex<Environment<'a>>>>,
 }
 
 impl PartialEq for Function<'_> {
@@ -87,16 +87,16 @@ impl <'a>Environment<'a> {
         };
     }
 
-    pub fn get(&'a self, name: &String) -> Option<&Object> {
+    pub fn get<'b>(&'b self, name: &String) -> Option<Object<'a>> {
         if let Some(obj) = self.store.get(name) {
-            return Some(obj);
+            return Some(obj.clone());
         } else if let Some(parent) = &self.parent {
             return parent.get(name);
         }
         return None;
     }
 
-    pub fn set(&'a mut self, name: String, val: Object<'a>) {
+    pub fn set<'b>(&'b mut self, name: String, val: Object<'a>) {
         self.store.insert(name, val);
     }
 

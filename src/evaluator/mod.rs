@@ -21,7 +21,7 @@ fn is_truthy(condition: Object) -> bool {
     };
 }
 
-fn eval_program(p: Program, env: Arc<Environment<'static>>) -> Object<'static> {
+fn eval_program(p: Program, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     let mut result: Object = Object::Null;
     for i in 0..p.statements.len() {
         result = eval_statement(p.statements[i].clone(), env.clone());
@@ -34,7 +34,7 @@ fn eval_program(p: Program, env: Arc<Environment<'static>>) -> Object<'static> {
     return result;
 }
 
-fn eval_block_statement(bs: BlockStatement, env: Arc<Environment<'static>>) -> Object<'static> {
+fn eval_block_statement(bs: BlockStatement, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     let mut result: Object = Object::Null;
     for i in 0..bs.statements.len() {
         result = eval_statement(bs.statements[i].clone(), env.clone());
@@ -48,7 +48,7 @@ fn eval_block_statement(bs: BlockStatement, env: Arc<Environment<'static>>) -> O
     return result;
 }
 
-fn eval_statement(s: Statement, env: Arc<Environment<'static>>) -> Object<'static> {
+fn eval_statement(s: Statement, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     return match s {
         Statement::ExpressionStatement(es) => eval_expression(es.expression, env.clone()),
         Statement::ReturnStatement(rs) => {
@@ -65,7 +65,8 @@ fn eval_statement(s: Statement, env: Arc<Environment<'static>>) -> Object<'stati
                 if let Object::Error(_) = val {
                     val
                 } else {
-                    env.set(ls.name.value.clone(), val.clone());
+                    let mut env = env.try_lock().expect("Error locking env");
+                    env.set(ls.name.value, val.clone());
                     val
                 }
             } else {
@@ -121,7 +122,7 @@ fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object<'st
     };
 }
 
-fn eval_infix_expression(op: String, left: Object<'static>, right: Object<'static>) -> Object<'static> {
+fn eval_infix_expression(op: String, left: &Object<'static>, right: &Object<'static>) -> Object<'static> {
     return match op.as_str() {
         "==" => Object::Boolean(left == right),
         "!=" => Object::Boolean(left != right),
@@ -130,17 +131,17 @@ fn eval_infix_expression(op: String, left: Object<'static>, right: Object<'stati
         _ => match left {
             Object::Integer(l) => {
                 if let Object::Integer(r) = right {
-                    eval_infix_int_expression(op, l, r)
+                    eval_infix_int_expression(op, *l, *r)
                 } else {
-                    new_error!("type mismatch: {} {} {}", get_type(&left), op, get_type(&right))
+                    new_error!("type mismatch: {} {} {}", get_type(left), op, get_type(right))
                 }
             },
-            _ => new_error!("unknown operator: {} {} {}", get_type(&left), op, get_type(&right))
+            _ => new_error!("unknown operator: {} {} {}", get_type(left), op, get_type(right))
         }
     };
 }
 
-fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Environment<'static>>) -> Vec<Object<'static>> {
+fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Mutex<Environment<'static>>>) -> Vec<Object<'static>> {
     let mut objs: Vec<Object> = Vec::new();
     for i in 0..exps.len() {
         let exp = *exps[i].clone();
@@ -153,7 +154,7 @@ fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Environment<'static>>) 
     return objs;
 }
 
-fn eval_expression(e: Expression, env: Arc<Environment<'static>>) -> Object<'static> {
+fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
         Expression::Boolean(b) => Object::Boolean(b.value),
@@ -166,14 +167,15 @@ fn eval_expression(e: Expression, env: Arc<Environment<'static>>) -> Object<'sta
             }
         },
         Expression::InfixExpression(ie) => {
-            let left = eval_expression(*ie.left, env.clone());
-            let right = eval_expression(*ie.right, env.clone());
+            let left = eval_expression(*ie.left, env.clone()).clone();
+            let right = eval_expression(*ie.right, env.clone()).clone();
             if let Object::Error(_) = left {
                 left
             } else if let Object::Error(_) = right {
                 right
             } else {
-                eval_infix_expression(ie.operator, left, right)
+                let val = eval_infix_expression(ie.operator, &left, &right);
+                val
             }
         },
         Expression::IfExpression(ie) => {
@@ -181,22 +183,23 @@ fn eval_expression(e: Expression, env: Arc<Environment<'static>>) -> Object<'sta
             if let Object::Error(_) = condition {
                 condition
             } else if is_truthy(condition) {
-                eval(Node::BlockStatement(ie.consequence), env.clone())
+                let val = eval(Node::BlockStatement(ie.consequence), env.clone());
+                val
             } else {
                 if let Some(alt) = ie.alternative {
-                    eval(Node::BlockStatement(alt), env.clone())
+                    let val = eval(Node::BlockStatement(alt), env.clone());
+                    val
                 } else {
                     Object::Null
                 }
             }
         }
         Expression::Identifier(i) => {
-            // if let Some(val) = env.get(&i.value) {
-            //     val.clone()
-            // } else {
-            //     new_error!("unknown identifier: {}", i.value);
-            // }
-            new_error!("unknown identifier: {}", i.value)
+            if let Some(v) = env.try_lock().expect("Error locking env").get(&i.value) {
+                v
+            } else {
+                new_error!("unknown identifier: {}", i.value)
+            }
         },
         Expression::FunctionLiteral(fl) => {
             let parameters = fl.parameters;
@@ -221,7 +224,7 @@ fn eval_expression(e: Expression, env: Arc<Environment<'static>>) -> Object<'sta
     };
 }
 
-pub fn eval(node: Node, env: Arc<Environment<'static>>) -> Object<'static> {
+pub fn eval(node: Node, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     return match node {
         Node::Program(p) => eval_program(p, env.clone()),
         Node::Statement(s) => eval_statement(s, env.clone()),

@@ -5,7 +5,7 @@ use crate::parser::Parser;
 use crate::evaluator::eval;
 
 pub fn run() -> std::io::Result<()>{
-    let env = Arc::new(crate::object::Environment::new());
+    let env = Arc::new(Mutex::new(crate::object::Environment::new()));
     loop {
         print!("> ");
         let _ = stdout().flush();

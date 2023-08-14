@@ -35,6 +35,7 @@ impl Clone for Function<'_> {
 pub enum Object<'a> {
     Integer(i32),
     Boolean(bool),
+    String(String),
     ReturnValue(Box<Object<'a>>),
     Null,
     Error(String),
@@ -46,6 +47,7 @@ impl Object<'_> {
         return match self {
             Object::Integer(i) => i.to_string(),
             Object::Boolean(b) => b.to_string(),
+            Object::String(s) => s.to_string(),
             Object::ReturnValue(r) => r.inspect(),
             Object::Error(e) => format!("Error: {}", e),
             Object::Null => "null".to_string(),
@@ -66,6 +68,7 @@ pub fn get_type(obj: &Object) -> String {
     return match obj {
         Object::Integer(_) => String::from("INTEGER"),
         Object::Boolean(_) => String::from("BOOLEAN"),
+        Object::String(_) => String::from("STRING"),
         Object::ReturnValue(_) => String::from("RETURN_VALUE"),
         Object::Error(_) => String::from("ERROR"),
         Object::Null => String::from("NULL"),

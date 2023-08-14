@@ -57,6 +57,19 @@ impl<'a> Lexer<'a> {
         return s;
     }
 
+    fn read_string(&mut self) -> String {
+        self.read_char();
+        let mut s = String::new();
+        loop {
+            if self.ch == '"' {
+                break;
+            }
+            s.push(self.ch);
+            self.read_char();
+        }
+        return s;
+    }
+
     fn peek_char(&mut self) -> char {
         if self.read_position >= self.input.len() {
             return '\0';
@@ -91,6 +104,7 @@ impl<'a> Lexer<'a> {
             '/' => Token::SLASH,
             '<' => Token::LT,
             '>' => Token::GT,
+            '"' => Token::STRING(self.read_string()),
             '=' => {
                 if self.peek_char() == '=' {
                     self.read_char();

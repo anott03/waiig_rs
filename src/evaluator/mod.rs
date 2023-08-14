@@ -122,6 +122,13 @@ fn eval_infix_bool_expression(op: String, left: bool, right: bool) -> Object<'st
     };
 }
 
+fn eval_infix_string_expression(op: String, left: String, right: String) -> Object<'static> {
+    return match op.as_str() {
+        "+" => Object::String(left + &right),
+        _ => new_error!("unknown operator: STRING {} STRING", op),
+    }
+}
+
 fn eval_infix_expression(op: String, left: &Object<'static>, right: &Object<'static>) -> Object<'static> {
     return match op.as_str() {
         "==" => Object::Boolean(left == right),
@@ -132,6 +139,13 @@ fn eval_infix_expression(op: String, left: &Object<'static>, right: &Object<'sta
             Object::Integer(l) => {
                 if let Object::Integer(r) = right {
                     eval_infix_int_expression(op, *l, *r)
+                } else {
+                    new_error!("type mismatch: {} {} {}", get_type(left), op, get_type(right))
+                }
+            },
+            Object::String(l) => {
+                if let Object::String(r) = right {
+                    eval_infix_string_expression(op, l.clone(), r.clone())
                 } else {
                     new_error!("type mismatch: {} {} {}", get_type(left), op, get_type(right))
                 }
@@ -158,6 +172,7 @@ fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Obje
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
         Expression::Boolean(b) => Object::Boolean(b.value),
+        Expression::StringLiteral(s) => Object::String(s.value),
         Expression::PrefixExpression(pe) => {
             let right = eval_expression(*pe.right, env);
             if let Object::Error(_) = right {

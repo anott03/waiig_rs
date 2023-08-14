@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub enum Token {
     IDENT(String),
     INT(String),
+    STRING(String),
 
     FUNCTION,
     LET,
@@ -58,6 +59,7 @@ pub fn get_literal(token: &Token) -> String {
     return match token {
         Token::IDENT(s) => s.to_string(),
         Token::INT(s) => s.to_string(),
+        Token::STRING(s) => s.to_string(),
         Token::FUNCTION => String::from("fn"),
         Token::LET => String::from("let"),
         Token::TRUE => String::from("true"),

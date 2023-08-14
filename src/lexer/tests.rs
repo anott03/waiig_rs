@@ -33,17 +33,7 @@ fn next_token() {
 
 #[test]
 fn next_token_code() {
-    let input = "let five = 5;
-let ten = 10;
-
-let add = fn(x, y) {
-    x + y;
-};
-
-let result = add(five, ten);
-!-/*5;
-5 < 10 > 5;
-";
+    let input = "let five = 5; \"foobar\";";
     let mut l = Lexer::new(input);
     let mut t = l.next_token();
     assert_eq!(t, Token::LET);
@@ -53,6 +43,10 @@ let result = add(five, ten);
     assert_eq!(t, Token::ASSIGN);
     t = l.next_token();
     assert_eq!(t, Token::INT(String::from("5")));
+    t = l.next_token();
+    assert_eq!(t, Token::SEMICOLON);
+    t = l.next_token();
+    assert_eq!(t, Token::STRING(String::from("foobar")));
     t = l.next_token();
     assert_eq!(t, Token::SEMICOLON);
 }

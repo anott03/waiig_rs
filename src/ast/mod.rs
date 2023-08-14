@@ -138,6 +138,22 @@ impl Inspect for IntegerLiteral {
 }
 
 #[derive(Debug, Clone)]
+pub struct StringLiteral {
+    pub token: Token,
+    pub value: String,
+}
+
+impl Inspect for StringLiteral {
+    fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    fn to_string(&self) -> String {
+        return format!("{:?}", self.value);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct PrefixExpression {
     pub token: Token,
     pub operator: String,
@@ -177,6 +193,7 @@ pub enum Expression {
     Empty,
     Identifier(Identifier),
     IntegerLiteral(IntegerLiteral),
+    StringLiteral(StringLiteral),
     PrefixExpression(PrefixExpression),
     InfixExpression(InfixExpression),
     Boolean(BooleanLiteral),
@@ -191,6 +208,7 @@ impl Inspect for Expression {
             Expression::Empty => String::new(),
             Expression::Identifier(i) => get_literal(&i.token),
             Expression::IntegerLiteral(il) => get_literal(&il.token),
+            Expression::StringLiteral(sl) => get_literal(&sl.token),
             Expression::PrefixExpression(pe) => get_literal(&pe.token),
             Expression::InfixExpression(ie) => get_literal(&ie.token),
             Expression::Boolean(b) => get_literal(&b.token),
@@ -205,6 +223,7 @@ impl Inspect for Expression {
             Expression::Empty => String::new(),
             Expression::Identifier(i) => i.to_string(),
             Expression::IntegerLiteral(il) => il.to_string(),
+            Expression::StringLiteral(sl) => sl.to_string(),
             Expression::PrefixExpression(pe) => pe.to_string(),
             Expression::InfixExpression(ie) => ie.to_string(),
             Expression::Boolean(b) => b.to_string(),

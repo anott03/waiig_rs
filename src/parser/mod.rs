@@ -229,6 +229,16 @@ fn parse_integer_literal(p: &mut Parser) -> Option<ast::Expression> {
     return None;
 }
 
+fn parse_string_literal(p: &mut Parser) -> Option<ast::Expression> {
+    if let Token::STRING(s) = &p.curr_token {
+        return Some(ast::Expression::StringLiteral(ast::StringLiteral{
+            token: p.curr_token.clone(),
+            value: s.to_string(),
+        }));
+    }
+    return None;
+}
+
 fn parse_prefix_expression(p: &mut Parser) -> Option<ast::Expression> {
     let tok = p.curr_token.clone();
     p.next_token();
@@ -265,6 +275,7 @@ fn get_prefix_fn(token: &Token) -> Option<PrefixParseFn> {
     return match token {
         Token::IDENT(_) => Some(parse_identifier),
         Token::INT(_) => Some(parse_integer_literal),
+        Token::STRING(_) => Some(parse_string_literal),
         Token::BANG | Token::MINUS => Some(parse_prefix_expression),
         Token::TRUE | Token::FALSE => Some(parse_boolean),
         Token::LPAREN => Some(parse_grouped_expression),

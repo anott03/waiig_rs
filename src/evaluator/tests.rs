@@ -237,3 +237,24 @@ fn error_handling() {
         }
     });
 }
+
+#[test]
+fn string_concat() {
+    use std::sync::{Arc, Mutex};
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use crate::object::*;
+    use crate::evaluator::eval;
+
+    let input = "\"hello \" + \"world!\";";
+
+    let mut p = Parser::new(Lexer::new(input));
+    let program = p.parse_program().unwrap();
+    let env = Arc::new(Mutex::new(Environment::new()));
+    let obj = eval(crate::ast::Node::Program(program), env);
+    if let Object::String(s) = obj {
+        assert_eq!(s, "hello world!");
+    } else {
+        panic!("obj is not an Error");
+    }
+}

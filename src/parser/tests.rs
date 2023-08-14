@@ -471,3 +471,25 @@ fn parse_call_expression() {
         }
     }
 }
+
+#[test]
+fn parse_string_literal() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "\"foobar\";";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        if let ast::Statement::ExpressionStatement(es) = program.statements[0].clone() {
+            if let ast::Expression::StringLiteral(sl) = es.expression {
+                assert_eq!("foobar", sl.value);
+            }
+        }
+    }
+}

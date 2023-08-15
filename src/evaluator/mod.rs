@@ -174,7 +174,7 @@ fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Mutex<Environment<'stat
 
 fn get_std_string_func(f: &String) -> Option<fn(&Vec<Object<'static>>)->Object<'static>> {
     return match f.as_str() {
-        "len" => Some(move |args| {
+        "strlen" => Some(move |args| {
             if let Object::String(s) = args[0].clone() {
                 Object::Integer(s.len().try_into().unwrap())
             } else {

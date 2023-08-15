@@ -6,6 +6,22 @@ pub trait Inspect {
 }
 
 #[derive(Debug, Clone)]
+pub struct ImportStatement {
+    pub token: Token,
+    pub namespace: StringLiteral,
+}
+
+impl Inspect for ImportStatement {
+    fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    fn to_string(&self) -> String {
+        return format!("import {}", self.namespace.value);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct CallExpression {
     pub token: Token,
     pub function: Box<Expression>,
@@ -292,6 +308,7 @@ pub enum Statement {
     LetStatement(LetStatement),
     ReturnStatement(ReturnStatement),
     ExpressionStatement(ExpressionStatement),
+    ImportStatement(ImportStatement),
 }
 
 impl Inspect for Statement {
@@ -304,6 +321,7 @@ impl Inspect for Statement {
             Statement::LetStatement(ls) => ls.to_string(),
             Statement::ReturnStatement(rs) => rs.to_string(),
             Statement::ExpressionStatement(es) => es.to_string(),
+            Statement::ImportStatement(is) => is.to_string(),
         }
     }
 }

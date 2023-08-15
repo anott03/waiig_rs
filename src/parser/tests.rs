@@ -493,3 +493,25 @@ fn parse_string_literal() {
         }
     }
 }
+
+#[test]
+fn parse_import_statement() {
+    use crate::parser::Parser;
+    use crate::lexer::Lexer;
+    use crate::ast;
+
+    let input = "import \"std.string\";";
+    let l = Lexer::new(input);
+    let mut p = Parser::new(l);
+
+    if let Some(program) = p.parse_program() {
+        println!("{:?}", p.errors);
+
+        assert!(p.errors.len() == 0);
+        assert!(program.statements.len() == 1);
+
+        if let ast::Statement::ImportStatement(is) = program.statements[0].clone() {
+            assert_eq!("std.string", is.namespace.value);
+        }
+    }
+}

@@ -40,6 +40,7 @@ pub enum Object<'a> {
     Null,
     Error(String),
     Function(Function<'a>),
+    Builtin(fn(&Vec<Object<'static>>)->Object<'static>),
 }
 
 impl Object<'_> {
@@ -60,6 +61,7 @@ impl Object<'_> {
 
                 format!("fn({}) {{{}}}", params, f.body.to_string())
             },
+            Object::Builtin(_) => String::from("builtin fn"),
         };
     }
 }
@@ -73,6 +75,7 @@ pub fn get_type(obj: &Object) -> String {
         Object::Error(_) => String::from("ERROR"),
         Object::Null => String::from("NULL"),
         Object::Function(_) => String::from("FUNCTION"),
+        Object::Builtin(_) => String::from("BUILTIN"),
     };
 }
 
@@ -80,6 +83,7 @@ pub fn get_type(obj: &Object) -> String {
 pub struct Environment<'a> {
     store: Box<std::collections::HashMap<String, Object<'a>>>,
     parent: Option<Arc<Mutex<Environment<'a>>>>,
+    pub imports: Vec<String>,
 }
 
 impl <'a>Environment<'a> {
@@ -87,6 +91,7 @@ impl <'a>Environment<'a> {
         return Self {
             store: Box::new(std::collections::HashMap::new()),
             parent: None,
+            imports: Vec::new(),
         };
     }
 
@@ -109,5 +114,6 @@ pub fn new_enclosed_env(parent: Arc<Mutex<Environment>>) -> Environment {
     return Environment {
         store: Box::new(std::collections::HashMap::new()),
         parent: Some(parent),
+        imports: Vec::new(),
     }
 }

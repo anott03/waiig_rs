@@ -343,7 +343,15 @@ impl<'a> Parser<'a> {
                     self.peek_error(t);
                     false
                 }
-            }
+            },
+            Token::STRING(_) => {
+                if let Token::STRING(_) = self.peek_token {
+                    true
+                } else {
+                    self.peek_error(t);
+                    false
+                }
+            },
             _ => {
                 if self.peek_token == t {
                     true
@@ -395,6 +403,25 @@ impl<'a> Parser<'a> {
     fn no_prefix_parse_fn_error(&mut self, t: Token) {
         let msg = format!("no prefix parse function for {} found", get_literal(&t));
         self.errors.push(msg);
+    }
+
+    fn parse_import_statement(&mut self) -> Option<ast::Statement> {
+        if !self.expect_peek(Token::STRING(String::from(""))) {
+            return None;
+        }
+        self.next_token();
+        let namespace = parse_string_literal(self);
+        if let Some(ast::Expression::StringLiteral(sl)) = namespace {
+            if !self.expect_peek(Token::SEMICOLON) {
+                return None;
+            }
+            self.next_token();
+            return Some(ast::Statement::ImportStatement(ast::ImportStatement {
+                token: Token::IMPORT,
+                namespace: sl
+            }));
+        }
+        return None;
     }
 
     fn parse_let_statement(&mut self) -> Option<ast::Statement> {
@@ -478,6 +505,7 @@ impl<'a> Parser<'a> {
         return match self.curr_token.clone() {
             Token::LET => self.parse_let_statement(),
             Token::RETURN => self.parse_return_statement(),
+            Token::IMPORT => self.parse_import_statement(),
             _ => self.parse_expression_statement(),
         };
     }

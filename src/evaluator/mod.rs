@@ -72,6 +72,10 @@ fn eval_statement(s: Statement, env: Arc<Mutex<Environment<'static>>>) -> Object
             } else {
                 new_error!("variable does not have initial value: {}", ls.name.value)
             }
+        },
+        Statement::ImportStatement(is) => {
+            env.try_lock().expect("Error locking env").imports.insert(0, is.namespace.value.clone());
+            Object::Null
         }
     };
 }
@@ -168,6 +172,36 @@ fn eval_expressions(exps: Vec<Box<Expression>>, env: Arc<Mutex<Environment<'stat
     return objs;
 }
 
+fn get_std_string_func(f: &String) -> Option<fn(&Vec<Object<'static>>)->Object<'static>> {
+    return match f.as_str() {
+        "len" => Some(move |args| {
+            if let Object::String(s) = args[0].clone() {
+                Object::Integer(s.len().try_into().unwrap())
+            } else {
+                new_error!("std.string.len must be passed a STRING, got {}", get_type(&args[0]))
+            }
+        }),
+        _ => None,
+    };
+}
+
+fn get_std_func(f: &String, imports: Vec<String>) -> Option<Object<'static>> {
+    let mut ret: Option<Object<'static>> = None;
+
+    imports.iter().for_each(|namespace| {
+        match namespace.as_str() {
+            "std.string" => {
+                if let Some(fun) = get_std_string_func(f) {
+                    ret = Some(Object::Builtin(fun));
+                    return;
+                }
+            }
+            _ => (),
+        };
+    });
+    return ret;
+}
+
 fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Object<'static> {
     return match e {
         Expression::IntegerLiteral(i) => Object::Integer(i.value),
@@ -210,8 +244,11 @@ fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Obje
             }
         }
         Expression::Identifier(i) => {
-            if let Some(v) = env.try_lock().expect("Error locking env").get(&i.value) {
+            let e = env.try_lock().expect("Error locking env");
+            if let Some(v) = e.get(&i.value) {
                 v
+            } else if let Some(f) = get_std_func(&i.value, e.imports.clone()) {
+                f
             } else {
                 new_error!("unknown identifier: {}", i.value)
             }
@@ -241,6 +278,8 @@ fn eval_expression(e: Expression, env: Arc<Mutex<Environment<'static>>>) -> Obje
                     } else {
                         ret
                     }
+                } else if let Object::Builtin(f) = function {
+                    f(&args)
                 } else {
                     new_error!("not a function: {}", get_type(&function))
                 }

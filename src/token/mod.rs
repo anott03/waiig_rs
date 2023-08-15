@@ -14,6 +14,7 @@ pub enum Token {
     IF,
     ELSE,
     RETURN,
+    IMPORT,
 
     ILLEGAL,
     EOF,
@@ -48,6 +49,7 @@ pub fn lookup_ident(ident: String) -> Token {
     keywords.insert("if", Token::IF);
     keywords.insert("else", Token::ELSE);
     keywords.insert("return", Token::RETURN);
+    keywords.insert("import", Token::IMPORT);
 
     return match keywords.get(ident.as_str()) {
         Some(x) => x.clone(),
@@ -67,6 +69,7 @@ pub fn get_literal(token: &Token) -> String {
         Token::IF => String::from("if"),
         Token::ELSE => String::from("else"),
         Token::RETURN => String::from("return"),
+        Token::IMPORT => String::from("import"),
         Token::ILLEGAL => String::from("ILLEGAL"),
         Token::EOF => String::from("\0"),
         Token::COMMA => String::from(","),

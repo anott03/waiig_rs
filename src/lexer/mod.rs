@@ -90,6 +90,8 @@ impl<'a> Lexer<'a> {
             ')' => Token::RPAREN,
             '{' => Token::LSQUIRLY,
             '}' => Token::RSQUIRLY,
+            '[' => Token::LBRACKET,
+            ']' => Token::RBRACKET,
 
             '+' => Token::PLUS,
             '-' => Token::MINUS,

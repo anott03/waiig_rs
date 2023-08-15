@@ -6,6 +6,28 @@ pub trait Inspect {
 }
 
 #[derive(Debug, Clone)]
+pub struct ArrayLiteral {
+    token: Token,
+    elements: Vec<Expression>,
+}
+
+impl Inspect for ArrayLiteral {
+    fn token_literal(&self) -> String {
+        return get_literal(&self.token);
+    }
+
+    fn to_string(&self) -> String {
+        return format!("[{}]", self
+            .elements
+            .iter()
+            .map(|e| e.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")
+        );
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ImportStatement {
     pub token: Token,
     pub namespace: StringLiteral,

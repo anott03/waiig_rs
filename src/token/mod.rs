@@ -24,6 +24,8 @@ pub enum Token {
     RPAREN,
     LSQUIRLY,
     RSQUIRLY,
+    LBRACKET,
+    RBRACKET,
 
     ASSIGN,
     PLUS,
@@ -78,6 +80,8 @@ pub fn get_literal(token: &Token) -> String {
         Token::RPAREN => String::from(")"),
         Token::LSQUIRLY => String::from("{"),
         Token::RSQUIRLY => String::from("}"),
+        Token::LBRACKET => String::from("["),
+        Token::RBRACKET => String::from("]"),
         Token::ASSIGN => String::from("="),
         Token::PLUS => String::from("+"),
         Token::MINUS => String::from("-"),

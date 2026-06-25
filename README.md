@@ -1,6 +1,6 @@
-# waiig_rs
+# Writing an Interpreter in Go (in Rust)
 
-This is a toy interpreter for the made up "Monkey" language that I built while reading Thorsten Ball's book, *Writing an Interpreter in Go*.
+This is a toy interpreter for the made up "Monkey" language that I built while reading Thorsten Ball's book, [*Writing an Interpreter in Go*](https://interpreterbook.com/).
 
 This version is written in Rust. It includes a lexer, Pratt parser, AST, evaluator, object system, environments, a small REPL, and tests for the implemented language pieces.
 
